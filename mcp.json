@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "sportdb": {
+      "type": "streamable-http",
+      "url": "https://api.sportdb.dev/mcp/",
+      "headers": { "X-API-Key": "" }
+    }
+  }
+}

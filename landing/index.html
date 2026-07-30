@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ingeniería de Software con IA y Coding Agents</title>
+<meta name="description" content="Curso práctico para developers: aprendé a dirigir, revisar y confiar en agentes de código en lugar de aceptarlos a ciegas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="noise"></div>
+
+<header class="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="#top">agent<span class="cursor">_</span></a>
+    <nav class="nav__links">
+      <a href="#problema">El problema</a>
+      <a href="#programa">Programa</a>
+      <a href="#para-quien">Para quién</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn btn--ghost nav__cta" href="#inscripcion">Anotarme</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__copy">
+      <p class="eyebrow">$ curso práctico · developers</p>
+      <h1 class="hero__title">
+        Aprendé a programar<br>
+        <em>junto a</em> un agente,<br>
+        no en su lugar.
+      </h1>
+      <p class="hero__sub">
+        Ingeniería de Software con IA y Coding Agents es un curso para developers
+        que ya usan Copilot, Cursor o Claude Code — y quieren dejar de pegar código
+        que no entienden del todo.
+      </p>
+      <div class="hero__actions">
+        <a href="#inscripcion" class="btn btn--primary">Quiero anotarme</a>
+        <a href="#programa" class="btn btn--link">Ver el programa ↓</a>
+      </div>
+      <p class="hero__meta">Próxima cohorte · online · 4 semanas</p>
+    </div>
+
+    <div class="hero__term" aria-hidden="true">
+      <div class="term">
+        <div class="term__bar">
+          <span class="term__dot term__dot--r"></span>
+          <span class="term__dot term__dot--y"></span>
+          <span class="term__dot term__dot--g"></span>
+          <span class="term__title">agent.diff</span>
+        </div>
+        <div class="term__body">
+          <pre class="term__prompt">$ agent "arreglá el rate limiter"</pre>
+          <pre class="term__diff" id="diff-output"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEMA -->
+  <section class="section" id="problema">
+    <p class="section__eyebrow">// el problema</p>
+    <h2 class="section__title">El agente escribe rápido. La confianza no.</h2>
+    <div class="cards">
+      <article class="card reveal">
+        <p class="card__mark card__mark--rm">−</p>
+        <h3>Aceptás todo el diff</h3>
+        <p>Tab, tab, tab. Funciona en el happy path y rompe en producción un jueves a la noche.</p>
+      </article>
+      <article class="card reveal">
+        <p class="card__mark card__mark--rm">−</p>
+        <h3>No sabés qué preguntarle</h3>
+        <p>El prompt correcto no es "hacé esto", es "hacé esto, así, por esta razón, y probalo de esta forma".</p>
+      </article>
+      <article class="card reveal">
+        <p class="card__mark card__mark--rm">−</p>
+        <h3>El agente alucina con confianza</h3>
+        <p>Inventa APIs, ignora tests, y lo dice todo con el mismo tono seguro que cuando tiene razón.</p>
+      </article>
+    </div>
+    <p class="section__lede reveal">
+      Este curso no enseña a "usar prompts mágicos". Enseña a leer un diff generado por IA
+      con el mismo criterio con el que revisás el de un compañero senior —
+      y a dirigir al agente para que llegue ahí directamente.
+    </p>
+  </section>
+
+  <!-- PROGRAMA -->
+  <section class="section section--dark" id="programa">
+    <p class="section__eyebrow">// el programa</p>
+    <h2 class="section__title">Cuatro módulos, un repo real.</h2>
+
+    <div class="tree reveal">
+      <div class="tree__item">
+        <span class="tree__path">01_fundamentos/</span>
+        <span class="tree__file">como_piensa_un_agente.md</span>
+        <p>Modelos, contexto, tokens y por qué un agente no "sabe" tu codebase — la construye en cada corrida.</p>
+      </div>
+      <div class="tree__item">
+        <span class="tree__path">02_direccion/</span>
+        <span class="tree__file">prompts_que_dan_contexto.md</span>
+        <p>Cómo escribir instrucciones que reducen la ambigüedad: alcance, restricciones, criterios de aceptación.</p>
+      </div>
+      <div class="tree__item">
+        <span class="tree__path">03_revision/</span>
+        <span class="tree__file">leer_un_diff_de_ia.md</span>
+        <p>Qué mirar primero en un PR generado por IA: efectos secundarios, tests borrados, dependencias nuevas.</p>
+      </div>
+      <div class="tree__item">
+        <span class="tree__path">04_produccion/</span>
+        <span class="tree__file">agentes_en_el_flujo_real.md</span>
+        <p>Integrar agentes de código a tu flujo de trabajo real: CI, revisiones de equipo, y cuándo NO delegar.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARA QUIÉN -->
+  <section class="section" id="para-quien">
+    <p class="section__eyebrow">// requisitos</p>
+    <h2 class="section__title">Para quién es (y para quién no)</h2>
+    <div class="split reveal">
+      <div class="split__col">
+        <h3 class="split__heading split__heading--yes">Es para vos si</h3>
+        <ul class="checklist checklist--yes">
+          <li>Ya programás profesionalmente, en cualquier stack.</li>
+          <li>Usás (o probaste) Copilot, Cursor, Claude Code o similar.</li>
+          <li>Querés soltarle tareas más grandes a un agente sin perder el control.</li>
+        </ul>
+      </div>
+      <div class="split__col">
+        <h3 class="split__heading split__heading--no">No es para vos si</h3>
+        <ul class="checklist checklist--no">
+          <li>Buscás "prompts mágicos" sin entender el código que generan.</li>
+          <li>Nunca escribiste código y esperás que la IA lo haga por vos.</li>
+          <li>Ya lideras un equipo con un flujo de agentes maduro y documentado.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTRUCTOR -->
+  <section class="section section--dark">
+    <div class="instructor reveal">
+      <p class="section__eyebrow">// quién lo dicta</p>
+      <h2 class="section__title">Nacho Sotelo</h2>
+      <p class="instructor__bio">
+        Ingeniero de software que pasó los últimos años integrando agentes de IA
+        al ciclo de desarrollo real de producto — no en demos, en código que corre
+        en producción. Este curso es la síntesis de esos errores y aciertos.
+      </p>
+    </div>
+  </section>
+
+  <!-- INSCRIPCIÓN -->
+  <section class="section cta" id="inscripcion">
+    <p class="section__eyebrow">// anotate</p>
+    <h2 class="section__title">Próxima cohorte: cupos limitados.</h2>
+    <p class="section__lede">
+      Dejá tu email y te avisamos apenas se abre la inscripción, con acceso
+      prioritario y un precio de lanzamiento.
+    </p>
+    <form class="signup" id="signup-form">
+      <label class="sr-only" for="email">Email</label>
+      <input class="signup__input" type="email" id="email" name="email" placeholder="vos@ejemplo.com" required>
+      <button class="btn btn--primary" type="submit">Quiero anotarme</button>
+    </form>
+    <p class="signup__status" id="signup-status" role="status"></p>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" id="faq">
+    <p class="section__eyebrow">// preguntas frecuentes</p>
+    <h2 class="section__title">FAQ</h2>
+    <div class="faq reveal">
+      <details class="faq__item">
+        <summary>¿Necesito experiencia previa con IA?</summary>
+        <p>No. Necesitás experiencia programando. La parte de IA se enseña desde cero, con foco en criterio, no en herramientas puntuales.</p>
+      </details>
+      <details class="faq__item">
+        <summary>¿Qué herramientas vamos a usar?</summary>
+        <p>Trabajamos con coding agents de uso general (como Claude Code) para que los conceptos se transfieran sin importar qué termine usando tu equipo.</p>
+      </details>
+      <details class="faq__item">
+        <summary>¿Es en vivo o grabado?</summary>
+        <p>Encuentros en vivo online, con ejercicios sobre un repo real entre clase y clase.</p>
+      </details>
+      <details class="faq__item">
+        <summary>¿Da certificado?</summary>
+        <p>Sí, al completar los cuatro módulos y el proyecto final.</p>
+      </details>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>Ingeniería de Software con IA y Coding Agents</p>
+  <p class="footer__muted">Un curso para developers, no para prompts.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
