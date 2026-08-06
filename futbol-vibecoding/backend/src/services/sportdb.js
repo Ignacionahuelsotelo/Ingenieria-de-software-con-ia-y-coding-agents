@@ -1,6 +1,7 @@
 import { callSportDbTool } from "../mcp/client.js";
 import { wrap, TTL } from "../cache/index.js";
 import { LEAGUES, findLeague } from "../config/leagues.js";
+import { TEAMS, RIVER_BOCA_LEAGUES } from "../config/teams.js";
 
 function baseParams(league) {
   return {
@@ -58,6 +59,23 @@ export async function getMatches(leagueSlug, { page = 1 } = {}) {
   });
 }
 
+const RIVER_BOCA_TEAM_IDS = new Set([TEAMS["river-plate"].id, TEAMS["boca-juniors"].id]);
+
+// Partidos de River y/o Boca en las ligas argentinas donde compiten.
+export async function getRiverBocaMatches() {
+  const perLeague = await Promise.all(
+    RIVER_BOCA_LEAGUES.map(async (leagueSlug) => {
+      const matches = await getMatches(leagueSlug);
+      return matches.map((match) => ({ ...match, league: leagueSlug }));
+    })
+  );
+
+  return perLeague
+    .flat()
+    .filter((match) => RIVER_BOCA_TEAM_IDS.has(match.home.teamId) || RIVER_BOCA_TEAM_IDS.has(match.away.teamId))
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
 function mapStandingRow(row) {
   const [goalsFor, goalsAgainst] = (row.goals ?? "0:0").split(":").map((n) => Number(n));
   return {
@@ -88,4 +106,190 @@ export async function getStandings(leagueSlug) {
     });
     return (standings ?? []).map(mapStandingRow);
   });
+}
+
+// eventStage de SportDB no es un enum documentado: "SCHEDULED" y "FINISHED" son los únicos
+// valores confirmados; cualquier otra cosa ("1H", "2H", "HT", "ET", "PEN", ...) se interpreta
+// como en vivo.
+function mapMatchStatus(eventStage) {
+  if (eventStage === "FINISHED") return "finished";
+  if (eventStage === "SCHEDULED") return "upcoming";
+  return "live";
+}
+
+function toScore(value) {
+  return value === undefined || value === null ? null : Number(value);
+}
+
+function mapMatchFull(match, league) {
+  const status = mapMatchStatus(match.eventStage);
+  return {
+    id: match.eventId,
+    competition: { id: league.slug, name: league.name, logoUrl: null, country: league.country },
+    status,
+    kickoff: match.startDateTimeUtc,
+    statusLabel: status === "live" ? match.eventStage : undefined,
+    minute: null,
+    stadium: match.infoNotice ?? null,
+    homeTeam: { id: match.homeParticipantIds, name: match.homeName },
+    awayTeam: { id: match.awayParticipantIds, name: match.awayName },
+    score: { home: toScore(match.homeScore), away: toScore(match.awayScore) },
+  };
+}
+
+// El plan de SportDB tiene rate limit (3 req/s); recorrer las 6 ligas en paralelo lo supera
+// de forma consistente. Se resuelve secuencialmente en vez de con Promise.all.
+async function mapSequential(items, fn) {
+  const out = [];
+  for (const item of items) {
+    out.push(await fn(item));
+  }
+  return out;
+}
+
+async function getLeagueMatches(league) {
+  const season = await getActiveSeason(league);
+  return wrap("full-matches", { competitionId: league.competitionId, season }, TTL.MATCHES, async () => {
+    const fixtures = await callSportDbTool("flashscore_get_competition_fixtures", {
+      ...baseParams(league),
+      season,
+      page: 1,
+    });
+    const results = await callSportDbTool("flashscore_get_competition_results", {
+      ...baseParams(league),
+      season,
+      page: 1,
+    });
+    return [...(fixtures ?? []), ...(results ?? [])];
+  });
+}
+
+export async function getMatchesByDate(date) {
+  const perLeague = await mapSequential(LEAGUES, async (league) => {
+    try {
+      const matches = await getLeagueMatches(league);
+      return matches
+        .filter((match) => match.startDateTimeUtc?.slice(0, 10) === date)
+        .map((match) => mapMatchFull(match, league));
+    } catch (err) {
+      console.error(`Failed to fetch matches for ${league.slug}`, err);
+      return [];
+    }
+  });
+
+  return perLeague.flat().sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff));
+}
+
+async function findMatchWithLeague(id) {
+  for (const league of LEAGUES) {
+    const matches = await getLeagueMatches(league);
+    const match = matches.find((m) => m.eventId === id);
+    if (match) return { match, league };
+  }
+  return null;
+}
+
+export async function getMatchById(id) {
+  const found = await findMatchWithLeague(id);
+  return found ? mapMatchFull(found.match, found.league) : null;
+}
+
+export async function listCompetitions() {
+  return mapSequential(LEAGUES, async (league) => ({
+    id: league.slug,
+    name: league.name,
+    country: league.country,
+    season: await getActiveSeason(league),
+    logoUrl: null,
+  }));
+}
+
+// incidentType no está documentado como enum estable; se clasifica por incidentTypeName.
+function classifyEventType(typeNames) {
+  const names = typeNames.join(" ").toLowerCase();
+  if (names.includes("red card")) return "red";
+  if (names.includes("yellow card")) return "yellow";
+  if (names.includes("substitution")) return "sub";
+  if (names.includes("var")) return "var";
+  return "goal";
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value : [value];
+}
+
+function mapMatchEvent(incident) {
+  const typeNames = asArray(incident.incidentTypeName ?? []);
+  const playerNames = asArray(incident.incidentPlayerName ?? []);
+  const commentary = asArray(incident.incidentCommentary ?? []);
+  return {
+    id: incident.eventId,
+    minute: parseInt(incident.incidentTime, 10) || 0,
+    type: classifyEventType(typeNames),
+    side: incident.incidentSide === "1" ? "home" : "away",
+    player: playerNames[0] ?? "",
+    detail: commentary.find((c) => c) ?? undefined,
+  };
+}
+
+export async function getMatchEvents(id) {
+  const details = await callSportDbTool("flashscore_get_match_events", { match_id: id });
+  return (details?.events ?? []).map(mapMatchEvent);
+}
+
+function mapLineupPlayer(player) {
+  return {
+    id: player.participantId,
+    number: parseInt(player.participantNumber, 10) || 0,
+    name: player.participantName,
+    position: player.participantSpecialPosition ?? "",
+  };
+}
+
+export async function getMatchLineups(id) {
+  const groups = await callSportDbTool("flashscore_get_match_lineups", { match_id: id });
+  const starting = groups?.find((g) => g.group === "Starting Lineups");
+  const subs = groups?.find((g) => g.group === "Substitutes");
+
+  return {
+    home: {
+      formation: starting?.home?.[0]?.formation ?? "",
+      starters: (starting?.home ?? []).map(mapLineupPlayer),
+      substitutes: (subs?.home ?? []).map(mapLineupPlayer),
+    },
+    away: {
+      formation: starting?.away?.[0]?.formation ?? "",
+      starters: (starting?.away ?? []).map(mapLineupPlayer),
+      substitutes: (subs?.away ?? []).map(mapLineupPlayer),
+    },
+  };
+}
+
+// Algunos valores vienen como "86% (459/536)"; nos quedamos con el porcentaje.
+function parseStatValue(value) {
+  const percentMatch = /(-?\d+(\.\d+)?)%/.exec(value ?? "");
+  if (percentMatch) return Number(percentMatch[1]);
+  const parsed = parseFloat(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+export async function getMatchStatistics(id) {
+  const periods = await callSportDbTool("flashscore_get_match_stats", { match_id: id });
+  const match = periods?.find((p) => p.period === "Match") ?? periods?.[0];
+
+  // SportDB repite algunos stats "titulares" (xG, tiros, posesión) como resumen antes del
+  // desglose completo por categoría; nos quedamos con la primera aparición de cada label.
+  const seen = new Set();
+  const stats = [];
+  for (const stat of match?.stats ?? []) {
+    if (seen.has(stat.statName)) continue;
+    seen.add(stat.statName);
+    stats.push({
+      label: stat.statName,
+      home: parseStatValue(stat.homeValue),
+      away: parseStatValue(stat.awayValue),
+      isPercent: (stat.homeValue ?? "").includes("%"),
+    });
+  }
+  return stats;
 }

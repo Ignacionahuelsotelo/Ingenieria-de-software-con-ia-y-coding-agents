@@ -26,25 +26,43 @@ async function getClient() {
   return clientPromise;
 }
 
+// El plan free de SportDB limita a 3 req/s. Varias rutas del backend pueden disparar
+// llamadas concurrentes (ej. la página de detalle de partido pide match+events+lineups+stats
+// en paralelo), así que serializamos todas las llamadas salientes con un espaciado mínimo
+// en vez de dejar que cada handler golpee el MCP por su cuenta.
+const MIN_INTERVAL_MS = 350;
+let queue = Promise.resolve();
+
+function throttle(fn) {
+  const run = queue.then(fn, fn);
+  queue = run.then(
+    () => new Promise((resolve) => setTimeout(resolve, MIN_INTERVAL_MS)),
+    () => new Promise((resolve) => setTimeout(resolve, MIN_INTERVAL_MS))
+  );
+  return run;
+}
+
 // Envuelve callTool: reconecta una vez si la conexión existente falló, y
 // devuelve directamente el `data` del payload { endpoint, source_status_code, data }.
 export async function callSportDbTool(name, args = {}) {
-  let client = await getClient();
-  let result;
-  try {
-    result = await client.callTool({ name, arguments: args });
-  } catch (err) {
-    clientPromise = null;
-    client = await getClient();
-    result = await client.callTool({ name, arguments: args });
-  }
+  return throttle(async () => {
+    let client = await getClient();
+    let result;
+    try {
+      result = await client.callTool({ name, arguments: args });
+    } catch (err) {
+      clientPromise = null;
+      client = await getClient();
+      result = await client.callTool({ name, arguments: args });
+    }
 
-  if (result.isError) {
-    const message = result.content?.[0]?.text ?? "SportDB MCP tool call failed";
-    throw new Error(`SportDB MCP error (${name}): ${message}`);
-  }
+    if (result.isError) {
+      const message = result.content?.[0]?.text ?? "SportDB MCP tool call failed";
+      throw new Error(`SportDB MCP error (${name}): ${message}`);
+    }
 
-  const text = result.content?.[0]?.text;
-  const parsed = text ? JSON.parse(text) : result;
-  return parsed.data;
+    const text = result.content?.[0]?.text;
+    const parsed = text ? JSON.parse(text) : result;
+    return parsed.data;
+  });
 }
