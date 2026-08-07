@@ -99,6 +99,10 @@ export function MatchCard({ match, onToggleFavorite }: MatchCardProps) {
           <span className="text-xs font-semibold uppercase tracking-wide text-muted">
             {match.statusLabel ?? "FT"}
           </span>
+        ) : status === "cancelled" ? (
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+            {match.statusLabel ?? "Cancelled"}
+          </span>
         ) : (
           <>
             <span className="font-mono text-sm font-semibold text-foreground">

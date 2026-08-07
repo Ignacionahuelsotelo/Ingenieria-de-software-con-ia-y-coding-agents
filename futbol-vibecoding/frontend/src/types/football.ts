@@ -6,7 +6,7 @@
  * mocked here — components render empty/loading states until real data arrives.
  */
 
-export type MatchStatus = "live" | "finished" | "upcoming"
+export type MatchStatus = "live" | "finished" | "upcoming" | "cancelled"
 
 export interface Team {
   id: string

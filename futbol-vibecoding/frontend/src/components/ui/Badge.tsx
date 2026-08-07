@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from "react"
 import { cn } from "@/lib/utils"
 
-type BadgeVariant = "live" | "finished" | "upcoming" | "neutral" | "accent"
+type BadgeVariant = "live" | "finished" | "upcoming" | "cancelled" | "neutral" | "accent"
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant
@@ -11,6 +11,7 @@ const variants: Record<BadgeVariant, string> = {
   live: "bg-primary/15 text-primary border border-primary/25",
   finished: "bg-white/[0.06] text-muted border-hairline",
   upcoming: "bg-secondary/12 text-secondary border border-secondary/25",
+  cancelled: "bg-white/[0.06] text-muted/80 border-hairline line-through decoration-muted/60",
   neutral: "bg-white/[0.06] text-muted border-hairline",
   accent: "bg-secondary/15 text-secondary border border-secondary/25",
 }

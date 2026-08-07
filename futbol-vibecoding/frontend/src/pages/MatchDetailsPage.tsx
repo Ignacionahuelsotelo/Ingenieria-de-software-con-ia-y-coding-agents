@@ -108,6 +108,8 @@ export function MatchDetailsPage() {
                     </div>
                     {match.status === "live" ? (
                       <LiveBadge label={match.statusLabel ?? `${match.minute ?? 0}'`} />
+                    ) : match.status === "cancelled" ? (
+                      <Badge variant="cancelled">{match.statusLabel ?? "Cancelled"}</Badge>
                     ) : (
                       <Badge variant={match.status === "finished" ? "finished" : "upcoming"}>
                         {match.status === "finished"

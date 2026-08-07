@@ -132,6 +132,39 @@ describe("GET /api/matches?date=", () => {
       },
     ]);
   });
+
+  it("maps postponed/cancelled eventStage to a non-live status instead of defaulting to live", async () => {
+    callSportDbTool.mockImplementation(async (tool, args) => {
+      if (tool === "flashscore_list_competition_seasons") return [{ season: "2025-2026" }];
+      if (tool === "flashscore_get_competition_fixtures") return [];
+      if (tool === "flashscore_get_competition_results") {
+        if (args.competition_id === "dYlOSQOD") {
+          return [
+            {
+              eventId: "postponed1",
+              eventStage: "POSTP",
+              startDateTimeUtc: "2025-08-10T14:00:00.000Z",
+              homeName: "Crystal Palace",
+              homeParticipantIds: "AovF1Mia",
+              homeScore: null,
+              awayName: "Liverpool",
+              awayParticipantIds: "lId4TMwf",
+              awayScore: null,
+            },
+          ];
+        }
+        return [];
+      }
+      throw new Error(`Unexpected tool call: ${tool}`);
+    });
+
+    const res = await request(app).get("/api/matches?date=2025-08-10");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].status).toBe("cancelled");
+    expect(res.body[0].statusLabel).toBe("POSTP");
+  });
 });
 
 describe("GET /api/matches/:id", () => {

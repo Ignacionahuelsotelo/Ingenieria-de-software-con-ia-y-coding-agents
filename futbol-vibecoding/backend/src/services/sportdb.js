@@ -109,11 +109,14 @@ export async function getStandings(leagueSlug) {
 }
 
 // eventStage de SportDB no es un enum documentado: "SCHEDULED" y "FINISHED" son los únicos
-// valores confirmados; cualquier otra cosa ("1H", "2H", "HT", "ET", "PEN", ...) se interpreta
-// como en vivo.
+// valores confirmados como no-live, junto con los estados de cancelación/postergación de
+// abajo. Cualquier otra cosa ("1H", "2H", "HT", "ET", "PEN", ...) se interpreta como en vivo.
+const NON_LIVE_STAGES = new Set(["CANC", "POSTP", "ABAN", "SUSP", "INTER", "AWARDED", "WO"]);
+
 function mapMatchStatus(eventStage) {
   if (eventStage === "FINISHED") return "finished";
   if (eventStage === "SCHEDULED") return "upcoming";
+  if (NON_LIVE_STAGES.has(eventStage)) return "cancelled";
   return "live";
 }
 
@@ -128,7 +131,7 @@ function mapMatchFull(match, league) {
     competition: { id: league.slug, name: league.name, logoUrl: null, country: league.country },
     status,
     kickoff: match.startDateTimeUtc,
-    statusLabel: status === "live" ? match.eventStage : undefined,
+    statusLabel: status === "live" || status === "cancelled" ? match.eventStage : undefined,
     minute: null,
     stadium: match.infoNotice ?? null,
     homeTeam: { id: match.homeParticipantIds, name: match.homeName },
