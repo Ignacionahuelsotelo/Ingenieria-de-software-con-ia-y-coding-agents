@@ -13,7 +13,12 @@ export interface DateOption {
 }
 
 function toIso(d: Date): string {
-  return d.toISOString().slice(0, 10)
+  // Use local date components (not toISOString, which converts to UTC) so the
+  // returned YYYY-MM-DD matches the caller's local "today", regardless of timezone.
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
 }
 
 /** Build a window of dates centered on today (from -1 day to +daysAhead). */
