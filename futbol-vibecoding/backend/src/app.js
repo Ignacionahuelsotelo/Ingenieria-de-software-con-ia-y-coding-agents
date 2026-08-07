@@ -1,6 +1,7 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 import { competitionsRouter } from "./routes/competitions.js";
+import { healthRouter } from "./routes/health.js";
 import { leaguesRouter } from "./routes/leagues.js";
 import { matchesRouter } from "./routes/matches.js";
 import { standingsRouter } from "./routes/standings.js";
@@ -8,6 +9,7 @@ import { openApiSpec } from "./openapi.js";
 
 export const app = express();
 
+app.use("/api/health", healthRouter);
 app.use("/api/leagues", leaguesRouter);
 app.use("/api/matches", matchesRouter);
 app.use("/api/standings", standingsRouter);

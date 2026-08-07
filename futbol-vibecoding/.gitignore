@@ -3,3 +3,8 @@ node_modules/
 .env.local
 dist/
 *.log
+
+# PostgreSQL local (docker-compose)
+pgdata/
+*.sql
+*.dump
