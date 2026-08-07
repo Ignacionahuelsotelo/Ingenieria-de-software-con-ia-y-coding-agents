@@ -210,6 +210,25 @@ describe("GET /api/matches/:id", () => {
 
     expect(res.status).toBe(404);
   });
+
+  it("caches the not-found lookup instead of re-scanning every league on repeated requests", async () => {
+    callSportDbTool.mockImplementation(async (tool) => {
+      if (tool === "flashscore_list_competition_seasons") return [{ season: "2025" }];
+      return [];
+    });
+
+    const first = await request(app).get("/api/matches/does-not-exist");
+    expect(first.status).toBe(404);
+
+    const callsAfterFirstRequest = callSportDbTool.mock.calls.length;
+    expect(callsAfterFirstRequest).toBeGreaterThan(0);
+
+    const second = await request(app).get("/api/matches/does-not-exist");
+    expect(second.status).toBe(404);
+
+    // Same id, still within TTL: should be served from cache, no extra MCP calls.
+    expect(callSportDbTool.mock.calls.length).toBe(callsAfterFirstRequest);
+  });
 });
 
 describe("GET /api/matches/:id/events", () => {

@@ -192,9 +192,15 @@ async function findMatchWithLeague(id) {
   return null;
 }
 
+// Cachea el resultado (encontrado o no) del lookup por id, no solo los fixtures/results por
+// liga. Sin esto, pedir un id inexistente (bots, ids con typos) fuerza un recorrido completo
+// de las 6 ligas configuradas -por request- una vez que el cache de "full-matches" por liga
+// expira (TTL.MATCHES), agotando buena parte de la cuota de 3 req/s del plan free de SportDB.
 export async function getMatchById(id) {
-  const found = await findMatchWithLeague(id);
-  return found ? mapMatchFull(found.match, found.league) : null;
+  return wrap("match-lookup", { id }, TTL.MATCHES, async () => {
+    const found = await findMatchWithLeague(id);
+    return found ? mapMatchFull(found.match, found.league) : null;
+  });
 }
 
 export async function listCompetitions() {
