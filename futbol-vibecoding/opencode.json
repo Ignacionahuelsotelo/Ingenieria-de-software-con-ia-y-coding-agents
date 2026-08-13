@@ -1,0 +1,14 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode/deepseek-v4-flash-free",
+  "mcp": {
+    "sportdb": {
+      "type": "remote",
+      "url": "https://api.sportdb.dev/mcp/",
+      "enabled": true,
+      "headers": {
+        "X-API-Key": "{env:SPORTDB_API_KEY}"
+      }
+    }
+  }
+}

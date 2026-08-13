@@ -2,7 +2,7 @@
 
 @theme {
   /* Core palette */
-  --color-background: #0b1220;
+  --color-background: #0d2b1e;
   --color-card: #111827;
   --color-surface: #1f2937;
   --color-primary: #22c55e;
@@ -20,6 +20,21 @@
 
   /* Custom easing */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Teletext token set — retro football scoreboard palette (turf green,
+     Tango-ball orange, trophy gold, card red), scoped to the results view
+     and the persistent app chrome (navbar/bottom nav) that frames it. */
+  --color-tx-bg: #0d2b1e;
+  --color-tx-panel: #123726;
+  --color-tx-line: #2c5b44;
+  --color-tx-orange: #ee6c0c;
+  --color-tx-gold: #f2b705;
+  --color-tx-red: #fa5a6e;
+  --color-tx-ink: #f6f1e4;
+  --color-tx-muted: #9fc0ab;
+
+  --font-tx-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+  --font-tx-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
@@ -44,7 +59,6 @@
   :focus-visible {
     outline: 2px solid var(--color-secondary);
     outline-offset: 2px;
-    border-radius: 6px;
   }
 
   ::-webkit-scrollbar {
@@ -74,6 +88,17 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Teletext dot-leader: connects a label to a value across a fixed grid,
+   the way teletext index pages joined a page title to its page number. */
+@utility tx-leader {
+  flex: 1 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+  letter-spacing: 0.2em;
+  color: var(--color-tx-line);
+  user-select: none;
+}
+
 /* Glass surface */
 @utility glass {
   background: linear-gradient(
@@ -85,20 +110,18 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Live pulse dot */
+/* Live pulse dot — opacity only, no box-shadow glow (hard-edged teletext look) */
 @keyframes live-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55);
-  }
-  70% {
-    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
-  }
+  0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
   }
 }
 .animate-live-pulse {
-  animation: live-pulse 1.6s var(--ease-out-soft) infinite;
+  animation: live-pulse 1.1s steps(2, jump-none) infinite;
 }
 
 @keyframes shimmer {
@@ -121,4 +144,15 @@
 }
 .animate-typing-dot {
   animation: typing-bounce 1.2s infinite ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

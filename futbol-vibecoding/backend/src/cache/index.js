@@ -25,4 +25,5 @@ export const TTL = {
   SEASON: 12 * 60 * 60 * 1000,
   STANDINGS: 5 * 60 * 1000,
   MATCHES: 3 * 60 * 1000,
+  TEAM: 5 * 60 * 1000,
 };

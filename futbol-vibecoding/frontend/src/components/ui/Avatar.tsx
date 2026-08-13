@@ -8,8 +8,8 @@ interface AvatarProps {
   fallback: string
   size?: "sm" | "md" | "lg"
   className?: string
-  /** Rounded shape — teams use "squircle", people use "circle". */
-  shape?: "circle" | "squircle"
+  /** Rounded shape — teams use "squircle", people use "circle", "square" is hard-edged (teletext). */
+  shape?: "circle" | "squircle" | "square"
 }
 
 const sizes = {
@@ -33,7 +33,7 @@ export function Avatar({
     <span
       className={cn(
         "relative inline-flex shrink-0 items-center justify-center overflow-hidden bg-surface font-semibold text-muted select-none border-hairline",
-        shape === "circle" ? "rounded-full" : "rounded-xl",
+        shape === "circle" ? "rounded-full" : shape === "square" ? "rounded-none" : "rounded-xl",
         sizes[size],
         className,
       )}

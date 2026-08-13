@@ -10,30 +10,31 @@ export function DateSelector({ value, onChange }: DateSelectorProps) {
   const dates = buildDateWindow()
 
   return (
-    <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-      {dates.map((d) => {
+    <div
+      className="no-scrollbar -mx-4 flex overflow-x-auto border-2 border-tx-line px-0 sm:mx-0"
+      role="tablist"
+      aria-label="Select date"
+    >
+      {dates.map((d, i) => {
         const active = d.iso === value
         return (
           <button
             key={d.iso}
+            role="tab"
+            aria-selected={active}
             onClick={() => onChange(d.iso)}
-            aria-pressed={active}
             className={cn(
-              "flex shrink-0 flex-col items-center gap-0.5 rounded-2xl px-4 py-2.5 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.97]",
+              "flex shrink-0 flex-col items-center justify-center gap-0.5 px-4 py-2.5 font-tx-mono transition-colors focus-visible:outline-tx-gold",
+              i > 0 && "border-l-2 border-tx-line",
               active
-                ? "bg-foreground text-background shadow-[0_10px_24px_-12px_rgba(249,250,251,0.5)]"
-                : "bg-surface/50 text-muted border-hairline hover:bg-surface hover:text-foreground",
+                ? "bg-tx-orange text-tx-bg"
+                : "bg-tx-panel text-tx-muted hover:bg-tx-line/40 hover:text-tx-ink",
             )}
           >
-            <span
-              className={cn(
-                "text-[11px] font-semibold uppercase tracking-wide",
-                active ? "text-background/70" : "text-muted",
-              )}
-            >
-              {d.weekday}
+            <span className="text-[10px] font-bold uppercase tracking-[0.15em]">
+              {d.isToday ? "TODAY" : d.weekday}
             </span>
-            <span className="text-sm font-bold tabular-nums">
+            <span className="text-sm font-bold tabular-nums tracking-wide">
               {d.day} {d.month}
             </span>
           </button>

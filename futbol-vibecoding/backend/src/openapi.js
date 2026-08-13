@@ -196,6 +196,20 @@ export const openApiSpec = {
         },
       },
     },
+    "/teams/{id}": {
+      get: {
+        summary: "Perfil de un equipo (estadio, país, DT y plantel)",
+        parameters: [{ $ref: "#/components/parameters/TeamId" }],
+        responses: {
+          200: {
+            description: "Perfil del equipo",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/TeamProfile" } } },
+          },
+          404: { description: "El team_id no se encontró en ninguna liga configurada" },
+          502: { description: "Falló la consulta al MCP de SportDB" },
+        },
+      },
+    },
   },
   components: {
     parameters: {
@@ -205,6 +219,13 @@ export const openApiSpec = {
         required: true,
         description: "eventId del partido (ver GET /api/matches)",
         schema: { type: "string", example: "KGB564l2" },
+      },
+      TeamId: {
+        name: "id",
+        in: "path",
+        required: true,
+        description: "team_id de SportDB (ver GET /api/matches o /api/standings)",
+        schema: { type: "string", example: "hMrWAFH0" },
       },
     },
     schemas: {
@@ -335,6 +356,44 @@ export const openApiSpec = {
             type: "array",
             items: { type: "string", enum: ["w", "d", "l", "upcoming"] },
             description: "Últimos resultados del equipo, más reciente primero",
+          },
+        },
+      },
+      TeamProfile: {
+        type: "object",
+        properties: {
+          id: { type: "string", example: "hMrWAFH0" },
+          name: { type: "string", example: "Boca Juniors" },
+          slug: { type: "string", example: "boca-juniors" },
+          logoUrl: { type: "string", nullable: true },
+          country: { type: "string", example: "Argentina" },
+          stadium: {
+            type: "object",
+            properties: {
+              name: { type: "string", example: "Estadio Alberto J. Armando (Buenos Aires)" },
+              capacity: { type: "integer", nullable: true, example: 57200 },
+            },
+          },
+          coach: {
+            type: "object",
+            nullable: true,
+            properties: {
+              id: { type: "string", example: "abc123" },
+              name: { type: "string", example: "Rodolfo Arruabarrena" },
+            },
+          },
+          squad: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "string", example: "2e5J9jeK" },
+                name: { type: "string", example: "Leandro Brey" },
+                number: { type: "integer", nullable: true, example: 12 },
+                position: { type: "string", example: "Goalkeepers" },
+                country: { type: "string", example: "Argentina" },
+              },
+            },
           },
         },
       },

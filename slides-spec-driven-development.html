@@ -1,0 +1,558 @@
+<title>Spec-Driven Development</title>
+
+<style>
+  :root {
+    --paper:     #F1F3F5;
+    --surface:   #FFFFFF;
+    --ink:       #15181E;
+    --ink-soft:  #59606E;
+    --ink-faint: #8B93A1;
+    --rule:      #D2D7DE;
+    --accent:    #1D5F5A;
+    --accent-bg: #DCEAE8;
+    --flag:      #A33D2E;
+    --flag-bg:   #F5E3DF;
+
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:     #0F1116;
+      --surface:   #171A21;
+      --ink:       #E7EAEF;
+      --ink-soft:  #99A1AF;
+      --ink-faint: #6B7383;
+      --rule:      #292F39;
+      --accent:    #5FB5AC;
+      --accent-bg: #16302E;
+      --flag:      #D9806D;
+      --flag-bg:   #33201C;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:     #0F1116;
+    --surface:   #171A21;
+    --ink:       #E7EAEF;
+    --ink-soft:  #99A1AF;
+    --ink-faint: #6B7383;
+    --rule:      #292F39;
+    --accent:    #5FB5AC;
+    --accent-bg: #16302E;
+    --flag:      #D9806D;
+    --flag-bg:   #33201C;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- deck shell ---------- */
+
+  .deck { position: relative; }
+
+  .slide {
+    display: none;
+    min-height: 100vh;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(1.25rem, 6vw, 6rem) 5.5rem;
+    max-width: 68rem;
+    margin: 0 auto;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(1rem, 2.5vw, 1.75rem);
+  }
+  .slide.on { display: flex; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .slide.on { animation: rise .32s cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: none; }
+    }
+  }
+
+  /* ---------- clause numbering ---------- */
+
+  .clause {
+    font-family: var(--mono);
+    font-size: .74rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+  }
+  .clause::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(2.1rem, 6.5vw, 4.1rem);
+    line-height: 1.02;
+    letter-spacing: -.035em;
+    font-weight: 600;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h2 {
+    font-family: var(--mono);
+    font-size: clamp(1.5rem, 3.9vw, 2.5rem);
+    line-height: 1.12;
+    letter-spacing: -.028em;
+    font-weight: 600;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-family: var(--mono);
+    font-size: 1rem;
+    letter-spacing: -.01em;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  p, li { font-size: clamp(1rem, 1.65vw, 1.2rem); line-height: 1.6; margin: 0; }
+  p.lead { font-size: clamp(1.12rem, 2.1vw, 1.45rem); color: var(--ink-soft); max-width: 46ch; }
+  .muted { color: var(--ink-soft); }
+  strong { font-weight: 650; }
+
+  ul { margin: 0; padding-left: 1.15rem; display: flex; flex-direction: column; gap: .7rem; }
+  li::marker { color: var(--accent); }
+
+  /* ---------- pieces ---------- */
+
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: clamp(1rem, 2.2vw, 1.9rem);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 1.15rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+  .card p { font-size: .96rem; color: var(--ink-soft); }
+
+  .stamp {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: .25rem .5rem;
+    border-radius: 2px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    width: fit-content;
+  }
+  .stamp.warn { background: var(--flag-bg); color: var(--flag); }
+
+  .pipe {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    align-items: stretch;
+  }
+  .step {
+    flex: 1 1 8.5rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--accent);
+    border-radius: 2px;
+    padding: .85rem .8rem;
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+  }
+  .step.opt { border-top-color: var(--ink-faint); }
+  .step code { font-family: var(--mono); font-size: .82rem; font-weight: 600; }
+  .step span { font-size: .82rem; color: var(--ink-soft); line-height: 1.4; }
+
+  .scroll { overflow-x: auto; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 32rem;
+    font-size: clamp(.92rem, 1.4vw, 1.05rem);
+  }
+  th, td {
+    text-align: left;
+    padding: .7rem .85rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); }
+
+  blockquote {
+    margin: 0;
+    padding: 1.1rem 0 1.1rem 1.4rem;
+    border-left: 3px solid var(--accent);
+    font-size: clamp(1.15rem, 2.4vw, 1.7rem);
+    line-height: 1.35;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+  }
+
+  code.inline {
+    font-family: var(--mono);
+    font-size: .88em;
+    background: var(--accent-bg);
+    color: var(--accent);
+    padding: .1rem .35rem;
+    border-radius: 2px;
+  }
+
+  .flow {
+    font-family: var(--mono);
+    font-size: clamp(.78rem, 1.5vw, 1rem);
+    line-height: 1.75;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 1.1rem 1.25rem;
+    white-space: pre;
+    overflow-x: auto;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- chrome ---------- */
+
+  .bar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: 3.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 clamp(1rem, 4vw, 2.5rem);
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: .74rem;
+    color: var(--ink-soft);
+  }
+  .bar .title { letter-spacing: .1em; text-transform: uppercase; }
+  .nav { display: flex; align-items: center; gap: .35rem; }
+  .nav button {
+    font-family: var(--mono);
+    font-size: .8rem;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: .3rem .6rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .nav button:hover { border-color: var(--accent); color: var(--accent); }
+  .nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .count { font-variant-numeric: tabular-nums; min-width: 4rem; text-align: center; }
+
+  .prog {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    background: var(--accent);
+    transition: width .25s ease;
+    z-index: 5;
+  }
+  @media (prefers-reduced-motion: reduce) { .prog { transition: none; } }
+
+  @media (max-width: 40rem) {
+    .bar .title { display: none; }
+  }
+</style>
+
+<div class="prog" id="prog"></div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 -->
+  <section class="slide on">
+    <div class="clause">Ingeniería de Software con IA · Módulo</div>
+    <h1>Spec-Driven<br>Development</h1>
+    <p class="lead">Escribir la especificación primero, y dejar que el agente la ejecute. Qué es, qué cuesta, y cuándo no vale la pena.</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="clause">01 · El problema</div>
+    <h2>Los agentes no fallan por no saber escribir código</h2>
+    <p class="lead">Fallan por ambigüedad.</p>
+    <div class="cols">
+      <div class="card">
+        <h3>Lo que pedís</h3>
+        <p>"Agregá un sistema de turnos para la barbería."</p>
+      </div>
+      <div class="card">
+        <h3>Lo que no dijiste</h3>
+        <p>¿Se puede reservar para dentro de 5 minutos? ¿Qué pasa si dos personas toman el mismo horario a la vez? ¿Hasta cuándo se cancela? ¿Feriados?</p>
+      </div>
+      <div class="card">
+        <h3>Lo que pasa</h3>
+        <p>El agente decide por vos, en silencio, y vos te enterás tres semanas después.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <div class="clause">02 · La inversión</div>
+    <h2>El spec es el artefacto. El código es su salida.</h2>
+    <div class="flow">conversacional     prompt  →  código  →  corregir  →  corregir  →  corregir
+
+spec-driven       spec  →  [ revisión humana ]  →  código  →  verificar
+                    ↑                                            │
+                    └──────── si falló, se arregla el SPEC ──────┘</div>
+    <p class="lead">Todo el pensamiento se mueve río arriba. En vez de corregir la salida, definís bien la entrada.</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <div class="clause">03 · Anatomía</div>
+    <h2>Qué tiene un spec que sirve</h2>
+    <div class="cols">
+      <div class="card">
+        <span class="stamp">Contrato</span>
+        <p>Inputs y outputs <strong>literales</strong>, con JSON de ejemplo. No descritos: escritos.</p>
+      </div>
+      <div class="card">
+        <span class="stamp">Archivos</span>
+        <p>Lista <strong>cerrada</strong> de qué se crea y qué se modifica, más la frase "no crear ningún otro archivo".</p>
+      </div>
+      <div class="card">
+        <span class="stamp">Aceptación</span>
+        <p>Cada criterio se verifica <strong>con un comando</strong>. "El código queda limpio" no es un criterio.</p>
+      </div>
+      <div class="card">
+        <span class="stamp">Riesgos</span>
+        <p>Qué puede fallar y cuál es el plan B, decidido antes de empezar.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <div class="clause">04 · La regla</div>
+    <blockquote>Cuando la implementación sale mal,<br>el bug está en el spec.</blockquote>
+    <p class="lead">Si parcheás el código a mano, tapaste el problema y la próxima feature falla igual. Arreglás el spec y volvés a ejecutar.</p>
+    <p class="muted">Es la misma lógica que arreglar el prompt en vez de la respuesta — pero con un artefacto versionado que se revisa en un pull request.</p>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="clause">05 · El pipeline</div>
+    <h2>GitHub Spec Kit</h2>
+    <div class="pipe">
+      <div class="step"><code>constitution</code><span>Principios del proyecto. Una vez.</span></div>
+      <div class="step"><code>specify</code><span>Qué construimos y para quién.</span></div>
+      <div class="step opt"><code>clarify</code><span>Preguntas sobre lo ambiguo.</span></div>
+      <div class="step"><code>plan</code><span>Cómo, técnicamente.</span></div>
+      <div class="step"><code>tasks</code><span>En qué pasos.</span></div>
+      <div class="step opt"><code>analyze</code><span>¿Spec, plan y tareas coinciden?</span></div>
+      <div class="step"><code>implement</code><span>El código.</span></div>
+      <div class="step"><code>converge</code><span>Qué quedó afuera.</span></div>
+    </div>
+    <p class="muted">Open source, gratis, y agnóstico de agente: Claude Code, Copilot, Cursor, Gemini, OpenCode y 30 más.</p>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <div class="clause">06 · Las tres fases que nadie improvisa</div>
+    <h2>Dónde falla el spec-driven casero</h2>
+    <div class="cols">
+      <div class="card">
+        <span class="stamp">clarify</span>
+        <p>Una fase <strong>obligatoria</strong> para encontrar lo sub-especificado. La diferencia entre "ojalá pregunte" y "tiene que preguntar".</p>
+      </div>
+      <div class="card">
+        <span class="stamp">analyze</span>
+        <p>Consistencia <strong>entre</strong> artefactos. El spec dice una cosa, las tareas dicen otra, y nadie lo nota hasta que el código está escrito.</p>
+      </div>
+      <div class="card">
+        <span class="stamp">converge</span>
+        <p>Compara el código contra el spec original y genera lo que falta. Sin esto, el pipeline termina cuando alguien dice "listo".</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="clause">07 · Beneficios</div>
+    <h2>Qué ganás</h2>
+    <div class="scroll">
+      <table>
+        <tr><th>Beneficio</th><th>Por qué pasa</th></tr>
+        <tr><td><strong>Modelos baratos alcanzan</strong></td><td>Un modelo fuerte resuelve la ambigüedad solo; uno chico no. Si el spec no tiene ambigüedad, el modelo importa menos.</td></tr>
+        <tr><td><strong>El error se detecta antes</strong></td><td>Revisar 2 páginas de spec cuesta minutos. Revisar 400 líneas de código, horas.</td></tr>
+        <tr><td><strong>Se puede delegar</strong></td><td>Podés darle la tarea a un agente en el que no confiás del todo, porque la aceptación se verifica con comandos.</td></tr>
+        <tr><td><strong>Queda registro</strong></td><td>El spec se versiona y se revisa en un PR. Una conversación con un chatbot, no.</td></tr>
+        <tr><td><strong>Paralelizable</strong></td><td>Un spec por historia = varias historias avanzando sin pisarse.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="clause">08 · Costos</div>
+    <h2>Qué te cuesta</h2>
+    <div class="cols">
+      <div class="card">
+        <span class="stamp warn">Tiempo</span>
+        <p>La primera hora no produce una línea de código. Para tareas chicas eso es pérdida neta.</p>
+      </div>
+      <div class="card">
+        <span class="stamp warn">Tokens</span>
+        <p>Cada fase es una corrida del agente. El pipeline entero cuesta más tokens que pedir el código directo — se recupera solo si evita rehacer trabajo.</p>
+      </div>
+      <div class="card">
+        <span class="stamp warn">Disciplina</span>
+        <p>Funciona si el equipo respeta el gate. El día que alguien parchea el código sin tocar el spec, los artefactos empiezan a mentir.</p>
+      </div>
+      <div class="card">
+        <span class="stamp warn">Rigidez</span>
+        <p>Cuando no sabés todavía qué querés construir, escribir un spec es fijar decisiones que no estás listo para tomar.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <div class="clause">09 · Criterio</div>
+    <h2>Cuándo sí y cuándo no</h2>
+    <div class="cols">
+      <div class="card">
+        <span class="stamp">Usalo</span>
+        <ul>
+          <li>La tarea toca varios archivos</li>
+          <li>Hay un contrato que respetar</li>
+          <li>Lo vas a delegar a un agente</li>
+          <li>El costo de equivocarse es alto</li>
+          <li>Más de una persona toca el código</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="stamp warn">No lo uses</span>
+        <ul>
+          <li>Cambios de una línea</li>
+          <li>Estás explorando, no construyendo</li>
+          <li>Prototipos descartables</li>
+          <li>Todavía no sabés cómo va a quedar</li>
+        </ul>
+      </div>
+    </div>
+    <p class="muted">Escribir un spec para renombrar una variable es burocracia, no metodología.</p>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide">
+    <div class="clause">10 · Economía</div>
+    <h2>El reparto que hace que cierre</h2>
+    <div class="scroll">
+      <table>
+        <tr><th>Fase</th><th>Qué pide</th><th>Modelo</th><th>Temp.</th></tr>
+        <tr><td><strong>Escribir el spec</strong></td><td>Criterio: qué contrato, qué casos borde, qué riesgos</td><td>El más capaz</td><td class="num">0.1</td></tr>
+        <tr><td><strong>Implementarlo</strong></td><td>Obediencia: seguir una lista</td><td>Rápido y barato</td><td class="num">0</td></tr>
+      </table>
+    </div>
+    <blockquote>Cuando alguien dice que un modelo abierto de 20B "no sirve para programar", casi siempre le está pidiendo las dos cosas a la vez.</blockquote>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide">
+    <div class="clause">11 · Nuestro caso</div>
+    <h2>Turnos para una barbería</h2>
+    <p class="lead">Un pedido de dos líneas que esconde diez decisiones.</p>
+    <div class="flow">/speckit-constitution   → principios: test-first, UTC, sin DB, dominio puro
+/speckit-specify        → "el dueño configura horarios, el cliente reserva"
+/speckit-clarify        → ¿reserva con 5 min? ¿doble reserva? ¿cancelación?
+/speckit-plan           → Express + ESM, Map en memoria, Vitest
+/speckit-tasks          → H-001 … H-006
+/speckit-analyze        → ¿alguna tarea cubre la cancelación del spec?
+/speckit-implement      → código
+/speckit-converge       → qué quedó sin hacer</div>
+    <p class="muted">Cada fase lee del disco lo que la anterior escribió. Podés cerrar la sesión entre una y otra: el estado no vive en el contexto.</p>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide">
+    <div class="clause">12 · Para llevarse</div>
+    <blockquote>Un spec es un contrato con una máquina que lee literalmente.</blockquote>
+    <ul>
+      <li>El spec-driven no es documentación: es <strong>la entrada del sistema</strong>.</li>
+      <li>La fase de <code class="inline">clarify</code> no agrega preguntas — <strong>las adelanta</strong>.</li>
+      <li>Si el criterio de aceptación no se verifica con un comando, no es un criterio.</li>
+      <li>Cuando falla, se arregla el spec. Nunca el código a mano.</li>
+      <li>GitHub distribuye su metodología oficial como <strong>diez archivos markdown</strong>. El formato que ya conocés.</li>
+    </ul>
+  </section>
+
+</div>
+
+<div class="bar">
+  <span class="title">Spec-Driven Development</span>
+  <div class="nav">
+    <button id="prev" aria-label="Slide anterior">←</button>
+    <span class="count" id="count">1 / 13</span>
+    <button id="next" aria-label="Slide siguiente">→</button>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var i = 0;
+    var count = document.getElementById('count');
+    var prog = document.getElementById('prog');
+
+    function show(n) {
+      i = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach(function (s, k) { s.classList.toggle('on', k === i); });
+      count.textContent = (i + 1) + ' / ' + slides.length;
+      prog.style.width = ((i + 1) / slides.length * 100) + '%';
+      window.scrollTo(0, 0);
+    }
+
+    document.getElementById('next').addEventListener('click', function () { show(i + 1); });
+    document.getElementById('prev').addEventListener('click', function () { show(i - 1); });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { show(i + 1); e.preventDefault(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { show(i - 1); e.preventDefault(); }
+      else if (e.key === 'Home') { show(0); }
+      else if (e.key === 'End') { show(slides.length - 1); }
+    });
+
+    show(0);
+  })();
+</script>

@@ -1,10 +1,10 @@
-import { ChevronRight } from "lucide-react"
 import type { Match } from "@/types/football"
 import { Avatar } from "@/components/ui/Avatar"
 import { MatchCard } from "./MatchCard"
-import { teamInitials } from "@/lib/utils"
+import { teamInitials, pageNumber } from "@/lib/utils"
 
 interface CompetitionSectionProps {
+  competitionId: string
   competitionName: string
   country?: string
   logoUrl?: string | null
@@ -13,6 +13,7 @@ interface CompetitionSectionProps {
 }
 
 export function CompetitionSection({
+  competitionId,
   competitionName,
   country,
   logoUrl,
@@ -20,27 +21,40 @@ export function CompetitionSection({
   onToggleFavorite,
 }: CompetitionSectionProps) {
   return (
-    <section className="flex flex-col gap-3">
-      <header className="flex items-center gap-3 px-1">
+    <section className="flex flex-col">
+      <header className="flex items-center gap-3 bg-tx-orange px-3 py-2.5 text-tx-bg">
         <Avatar
           src={logoUrl}
           alt={competitionName}
           fallback={teamInitials(competitionName)}
-          shape="squircle"
+          shape="square"
           size="sm"
+          className="border-2 border-tx-bg/70 bg-tx-bg/10"
         />
-        <div className="min-w-0">
-          <h2 className="truncate text-sm font-semibold text-foreground">{competitionName}</h2>
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate font-tx-mono text-sm font-extrabold uppercase tracking-[0.08em]">
+            {competitionName}
+          </h2>
           {country && (
-            <p className="truncate text-xs text-muted">{country}</p>
+            <p className="truncate text-[11px] font-semibold uppercase tracking-[0.1em] text-tx-bg/70">
+              {country}
+            </p>
           )}
         </div>
-        <ChevronRight className="ml-auto h-4 w-4 text-muted" />
+        <span className="shrink-0 font-tx-mono text-xs font-bold tabular-nums">
+          P&middot;{pageNumber(competitionId)}
+        </span>
       </header>
 
-      <div className="flex flex-col gap-2.5">
-        {matches.map((match) => (
-          <MatchCard key={match.id} match={match} onToggleFavorite={onToggleFavorite} />
+      <div className="flex flex-col border-2 border-t-0 border-tx-line">
+        {matches.map((match, i) => (
+          <MatchCard
+            key={match.id}
+            match={match}
+            onToggleFavorite={onToggleFavorite}
+            divider={i > 0}
+            zebra={i % 2 === 1}
+          />
         ))}
       </div>
     </section>

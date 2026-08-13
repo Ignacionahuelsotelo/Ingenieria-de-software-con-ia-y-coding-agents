@@ -3,7 +3,18 @@
     "sportdb": {
       "type": "http",
       "url": "https://api.sportdb.dev/mcp/",
-      "headers": { "X-API-Key": "RAiLKWm1p7clloMI5EyRlszVH9WCYFw4KfcqgLE1" }
+      "headers": {
+        "X-API-Key": ""
+      }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ],
+      "env": {}
     }
   }
 }

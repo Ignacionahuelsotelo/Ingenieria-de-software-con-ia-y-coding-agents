@@ -302,3 +302,88 @@ export async function getMatchStatistics(id) {
   }
   return stats;
 }
+
+// --- Team profile ---
+
+// Las standings vienen planas (Premier League: array de filas) o agrupadas por grupo
+// (Liga Profesional: [{ roundType, roundTypeId, teams: [...] }]). Normalizar a filas planas.
+function flattenStandings(standings) {
+  if (!Array.isArray(standings)) return [];
+  if (Array.isArray(standings[0]?.teams)) return standings.flatMap((group) => group.teams ?? []);
+  return standings;
+}
+
+// flashscore_get_team_details exige team_slug + team_id, pero la app solo tiene team_id.
+// El slug se resuelve desde datos que ya se cachean: primero los partidos de cada liga
+// (fixtures+results traen homeParticipantNameUrl/awayParticipantNameUrl) y, si el equipo
+// no aparece, las standings crudas (teamSlug). Devuelve null si no se encuentra.
+async function findTeamSlug(teamId) {
+  for (const league of LEAGUES) {
+    const matches = await getLeagueMatches(league);
+    for (const match of matches) {
+      if (match.homeParticipantIds === teamId) return match.homeParticipantNameUrl;
+      if (match.awayParticipantIds === teamId) return match.awayParticipantNameUrl;
+    }
+  }
+  for (const league of LEAGUES) {
+    const season = await getActiveSeason(league);
+    const standings = await wrap(
+      "standings-raw",
+      { competitionId: league.competitionId, season },
+      TTL.STANDINGS,
+      async () => callSportDbTool("flashscore_get_competition_standings", { ...baseParams(league), season })
+    );
+    const row = flattenStandings(standings).find((r) => r.teamId === teamId);
+    if (row?.teamSlug) return row.teamSlug;
+  }
+  return null;
+}
+
+function mapTeamDetails(data) {
+  const seen = new Set();
+  const squad = [];
+  let coach = null;
+  for (const group of data.squad ?? []) {
+    for (const player of group.players ?? []) {
+      if (seen.has(player.id)) continue;
+      seen.add(player.id);
+      const name = [player.firstName, player.lastName].filter(Boolean).join(" ");
+      const number = parseInt(player.jerseyNumber, 10);
+      if (player.position === "Coach") {
+        coach = { id: player.id, name };
+      } else {
+        squad.push({
+          id: player.id,
+          name,
+          number: Number.isNaN(number) ? null : number,
+          position: player.position ?? "",
+          country: player.countryName ?? "",
+        });
+      }
+    }
+  }
+  return {
+    id: data.id,
+    name: data.teamName,
+    slug: data.slug,
+    logoUrl: data.teamLogo ?? null,
+    country: data.country?.name ?? "",
+    stadium: { name: data.stadiumName ?? "", capacity: data.stadiumCapacity ?? null },
+    coach,
+    squad,
+  };
+}
+
+// Cachea el resultado (encontrado o no) por team_id, igual que getMatchById: sin esto,
+// un id inexistente fuerza el recorrido completo de las 6 ligas por request.
+export async function getTeamById(teamId) {
+  return wrap("team", { teamId }, TTL.TEAM, async () => {
+    const slug = await findTeamSlug(teamId);
+    if (!slug) return null;
+    const details = await callSportDbTool("flashscore_get_team_details", {
+      team_slug: slug,
+      team_id: teamId,
+    });
+    return mapTeamDetails(details);
+  });
+}
