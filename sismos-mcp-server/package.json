@@ -1,0 +1,32 @@
+{
+  "name": "sismos-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server de monitoreo sismico: tools contra API publica, base de datos local y un LLM abierto",
+  "type": "module",
+  "bin": {
+    "sismos-mcp-server": "dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "inspect": "npx @modelcontextprotocol/inspector",
+    "ask": "tsx src/cliente/cli.ts",
+    "ask:build": "node dist/cliente/cli.js",
+    "ask:gptoss": "LLM_MODEL=gpt-oss:20b-cloud tsx src/cliente/cli.ts",
+    "ask:minimax": "LLM_MODEL=minimax-m3:cloud tsx src/cliente/cli.ts",
+    "ask:groq": "LLM_BASE_URL=https://api.groq.com/openai/v1 LLM_MODEL=openai/gpt-oss-120b tsx src/cliente/cli.ts",
+    "web": "tsx src/web/servidor.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.22.0",
+    "express": "^5.1.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.15.3",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
+  }
+}

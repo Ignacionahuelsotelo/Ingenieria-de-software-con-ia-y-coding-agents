@@ -1,8 +1,14 @@
-import { createApp } from "./http/app.js";
+import { config } from './config/env.js'
+import { pool } from './db/pool.js'
+import { createApp } from './app.js'
 
-const port = process.env.PORT || 3000;
-const app = createApp();
+const app = createApp()
 
-app.listen(port, () => {
-  console.log(`Turnos barbería escuchando en http://localhost:${port}`);
-});
+app.listen(config.port, () => {
+  console.log(`turnos-backend escuchando en http://localhost:${config.port}`)
+})
+
+process.on('SIGTERM', async () => {
+  await pool.end()
+  process.exit(0)
+})

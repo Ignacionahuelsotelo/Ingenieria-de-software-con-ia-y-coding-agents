@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/lib/api.ts","./src/pages/agenda/agendaview.tsx","./src/pages/agenda/blockspanel.tsx","./src/pages/agenda/scheduleform.tsx","./src/pages/miturno/miturno.tsx","./src/pages/reservar/reservar.tsx"],"version":"5.9.3"}

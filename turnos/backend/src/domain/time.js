@@ -1,98 +1,65 @@
-const BARBERSHOP_TIMEZONE = "America/Argentina/Buenos_Aires";
+// Utilidades de tiempo puras (Principio II: sin Express ni pg).
+//
+// Todo instante interno es un `Date` (equivalente a un timestamptz UTC). La
+// timezone local del servidor se usa únicamente en los bordes explícitos de
+// este módulo (combinar fecha+hora local en un instante, y formatear un
+// instante como fecha local) — nunca se compara por string (Principio III).
 
-function offsetMinutesForZone(zone, date) {
-  const dtf = new Intl.DateTimeFormat("en-US", {
-    timeZone: zone,
-    hour12: false,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-  const parts = dtf.formatToParts(date).reduce((acc, part) => {
-    acc[part.type] = part.value;
-    return acc;
-  }, {});
-  const asUtc = Date.UTC(
-    Number(parts.year),
-    Number(parts.month) - 1,
-    Number(parts.day),
-    parts.hour === "24" ? 0 : Number(parts.hour),
-    Number(parts.minute),
-    Number(parts.second)
-  );
-  return (asUtc - date.getTime()) / 60000;
+const AVAILABILITY_WINDOW_DAYS = 14
+
+/**
+ * Combina una fecha local (YYYY-MM-DD) y una hora local (HH:mm) —
+ * interpretadas en la timezone local del proceso Node — en un instante UTC
+ * concreto (`Date`).
+ */
+export function localDateToUtcInstant(localDate, localTime) {
+  const [year, month, day] = localDate.split('-').map(Number)
+  const [hours, minutes] = localTime.split(':').map(Number)
+  // new Date(year, monthIndex, day, hours, minutes) interpreta los
+  // componentes en la timezone local del proceso y produce el instante UTC
+  // correspondiente internamente.
+  return new Date(year, month - 1, day, hours, minutes, 0, 0)
 }
 
 /**
- * Convierte una fecha (dayOfWeek-relative) + hora local "HH:mm" de la timezone de la
- * barbería a un Date en UTC.
+ * Ventana de disponibilidad: desde `now` (instante) hasta `now` + 14 días.
  */
-function localDateTimeToUtc(year, month, day, hourLocal, minuteLocal) {
-  const naiveUtcGuess = new Date(Date.UTC(year, month, day, hourLocal, minuteLocal));
-  const offsetMinutes = offsetMinutesForZone(BARBERSHOP_TIMEZONE, naiveUtcGuess);
-  return new Date(naiveUtcGuess.getTime() - offsetMinutes * 60000);
+export function getAvailabilityWindow(now = new Date()) {
+  const from = new Date(now.getTime())
+  const to = addMinutes(from, AVAILABILITY_WINDOW_DAYS * 24 * 60)
+  return { from, to }
 }
 
-function parseHHmm(hhmm) {
-  const [hour, minute] = hhmm.split(":").map(Number);
-  return { hour, minute };
+/**
+ * Weekday local (0=domingo..6=sábado) de una fecha YYYY-MM-DD, interpretada
+ * en la timezone local del proceso.
+ */
+export function weekdayOfLocalDate(localDate) {
+  const [year, month, day] = localDate.split('-').map(Number)
+  return new Date(year, month - 1, day).getDay()
 }
 
-function utcToLocalIso(date) {
-  const dtf = new Intl.DateTimeFormat("en-CA", {
-    timeZone: BARBERSHOP_TIMEZONE,
-    hour12: false,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-  const parts = dtf.formatToParts(date).reduce((acc, part) => {
-    acc[part.type] = part.value;
-    return acc;
-  }, {});
-  const offsetMinutes = offsetMinutesForZone(BARBERSHOP_TIMEZONE, date);
-  const sign = offsetMinutes < 0 ? "-" : "+";
-  const abs = Math.abs(offsetMinutes);
-  const offsetHours = String(Math.floor(abs / 60)).padStart(2, "0");
-  const offsetMins = String(abs % 60).padStart(2, "0");
-  const hour = parts.hour === "24" ? "00" : parts.hour;
-  return `${parts.year}-${parts.month}-${parts.day}T${hour}:${parts.minute}:${parts.second}${sign}${offsetHours}:${offsetMins}`;
+/** Compara dos instantes: ¿a es estrictamente anterior a b? */
+export function isBeforeInstant(a, b) {
+  return a.getTime() < b.getTime()
 }
 
-function utcToLocalDateParts(date) {
-  const dtf = new Intl.DateTimeFormat("en-CA", {
-    timeZone: BARBERSHOP_TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  const parts = dtf.formatToParts(date).reduce((acc, part) => {
-    acc[part.type] = part.value;
-    return acc;
-  }, {});
-  return { year: Number(parts.year), month: Number(parts.month) - 1, day: Number(parts.day) };
+/** Suma minutos a un instante y devuelve un nuevo instante. */
+export function addMinutes(instant, minutes) {
+  return new Date(instant.getTime() + minutes * 60 * 1000)
 }
 
-function rangesOverlap(startA, endA, startB, endB) {
-  return startA.getTime() < endB.getTime() && startB.getTime() < endA.getTime();
+/** Formatea un instante como fecha local YYYY-MM-DD (timezone del proceso). */
+export function formatLocalDate(instant) {
+  const year = instant.getFullYear()
+  const month = String(instant.getMonth() + 1).padStart(2, '0')
+  const day = String(instant.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
-function isBefore(dateA, dateB) {
-  return dateA.getTime() < dateB.getTime();
+/** Minutos transcurridos entre dos instantes (b - a). */
+export function minutesBetween(a, b) {
+  return (b.getTime() - a.getTime()) / (1000 * 60)
 }
 
-export {
-  BARBERSHOP_TIMEZONE,
-  localDateTimeToUtc,
-  parseHHmm,
-  utcToLocalIso,
-  utcToLocalDateParts,
-  rangesOverlap,
-  isBefore,
-};
+export { AVAILABILITY_WINDOW_DAYS }

@@ -1,0 +1,83 @@
+/*
+ * Dirección visual: "libreta de turnos" — la agenda de papel rayado que un
+ * barbero lleva en el mostrador. Columna de horas a máquina de escribir,
+ * renglones rayados como una libreta contable, anotaciones al margen en
+ * tinta roja para bloqueos/cancelaciones, sello de tinta para el código de
+ * reserva. Sin cards flotantes, sin gradientes, sin acento violeta/índigo.
+ */
+
+@import 'tailwindcss';
+
+@theme {
+  /* Paleta: tinta sobre papel de libreta */
+  --color-paper: #f1ecdd;
+  --color-paper-line: #cabf9e;
+  --color-ink: #241f18;
+  --color-ink-soft: #5c5340;
+  --color-ink-faint: #948a71;
+  --color-red-ink: #7c2a1e;
+  --color-green-ink: #2c4a2e;
+  --color-stamp: #1c3a5e;
+
+  /* Tipografía: máquina de escribir para horas/códigos, serif para nombres/copy */
+  --font-mono-ledger: 'Courier Prime', 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  --font-serif-ledger: 'Lora', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+
+  --radius-none: 0px;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-serif-ledger);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 2.15rem,
+      var(--color-paper-line) 2.15rem,
+      var(--color-paper-line) calc(2.15rem + 1px)
+    );
+    background-attachment: local;
+  }
+
+  ::selection {
+    background-color: var(--color-red-ink);
+    color: var(--color-paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-stamp);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .ledger-hours {
+    font-family: var(--font-mono-ledger);
+    letter-spacing: 0.02em;
+  }
+
+  .ink-stamp {
+    display: inline-block;
+    font-family: var(--font-mono-ledger);
+    border: 2px solid var(--color-stamp);
+    color: var(--color-stamp);
+    padding: 0.35rem 0.75rem;
+    transform: rotate(-1.5deg);
+    letter-spacing: 0.12em;
+  }
+
+  .margin-note {
+    font-family: var(--font-serif-ledger);
+    font-style: italic;
+    color: var(--color-red-ink);
+  }
+
+  .strike-cancelled {
+    text-decoration: line-through;
+    text-decoration-color: var(--color-red-ink);
+    text-decoration-thickness: 2px;
+    color: var(--color-ink-faint);
+  }
+}

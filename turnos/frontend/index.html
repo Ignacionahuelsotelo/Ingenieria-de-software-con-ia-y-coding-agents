@@ -1,50 +1,18 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <meta charset="utf-8" />
-    <title>Barbería — Reservar turno</title>
-    <link rel="stylesheet" href="/css/styles.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Turnos — Barbería</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <h1>Turnos disponibles</h1>
-    <label>
-      Buscar entre
-      <input type="date" id="from-date" />
-    </label>
-    <label>
-      y
-      <input type="date" id="to-date" />
-    </label>
-    <button id="load-slots">Buscar turnos</button>
-
-    <ul class="slots" id="slots-list"></ul>
-    <p id="slots-empty" hidden>No hay turnos disponibles en ese rango.</p>
-    <p class="error" id="slots-error" hidden></p>
-
-    <form id="booking-form" hidden>
-      <h2>Reservar turno seleccionado</h2>
-      <p id="selected-slot-label"></p>
-      <label>
-        Nombre
-        <input type="text" id="customer-name" required />
-      </label>
-      <label>
-        Email o teléfono
-        <input type="text" id="customer-contact" required />
-      </label>
-      <button type="submit">Confirmar reserva</button>
-      <p class="error" id="booking-error" hidden></p>
-    </form>
-
-    <h1>Mis turnos</h1>
-    <label>
-      Email o teléfono
-      <input type="text" id="my-contact" />
-    </label>
-    <button id="load-my-bookings">Ver mis turnos</button>
-    <ul class="bookings" id="my-bookings-list"></ul>
-    <p id="my-bookings-empty" hidden>No tenés turnos reservados.</p>
-
-    <script type="module" src="/js/client.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP en vivo — cliente y servidor</title>
+<style>
+  :root {
+    --fondo:      #0A0E14;
+    --panel:      #111823;
+    --panel-alto: #16202E;
+    --borde:      #1E2A3A;
+    --tinta:      #DCE3EC;
+    --tinta-baja: #7A8798;
+    --tinta-tenue:#4A5666;
+
+    --cliente:    #6EA8FF;
+    --servidor:   #7BDCA8;
+    --api:        #4FD6E8;
+    --db:         #7BDCA8;
+    --llm:        #C48CFF;
+    --alerta:     #FF7A6B;
+
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--fondo);
+    color: var(--tinta);
+    font-family: var(--sans);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── barra superior ─────────────────────────────────────────── */
+
+  header {
+    border-bottom: 1px solid var(--borde);
+    padding: .9rem 1.25rem;
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    background: var(--panel);
+  }
+
+  .marca {
+    font-family: var(--mono);
+    font-size: .78rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--tinta-baja);
+    white-space: nowrap;
+  }
+
+  #pregunta {
+    flex: 1;
+    min-width: 16rem;
+    background: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: 3px;
+    color: var(--tinta);
+    font-family: var(--sans);
+    font-size: .95rem;
+    padding: .55rem .8rem;
+  }
+  #pregunta:focus { outline: none; border-color: var(--cliente); }
+  #pregunta::placeholder { color: var(--tinta-tenue); }
+
+  select, button {
+    background: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: 3px;
+    color: var(--tinta);
+    font-family: var(--mono);
+    font-size: .82rem;
+    padding: .55rem .7rem;
+    cursor: pointer;
+  }
+  select:focus, button:focus-visible { outline: 2px solid var(--cliente); outline-offset: 1px; }
+  #enviar { background: var(--cliente); border-color: var(--cliente); color: #06101F; font-weight: 600; }
+  #enviar:disabled { opacity: .4; cursor: not-allowed; }
+
+  .chips { display: flex; gap: .4rem; padding: .5rem 1.25rem; flex-wrap: wrap; border-bottom: 1px solid var(--borde); background: var(--panel); }
+  .chip {
+    background: transparent; border: 1px solid var(--borde); border-radius: 999px;
+    color: var(--tinta-baja); font-family: var(--sans); font-size: .78rem; padding: .3rem .7rem;
+  }
+  .chip:hover { border-color: var(--cliente); color: var(--cliente); }
+
+  /* ── escenario de tres columnas ─────────────────────────────── */
+
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 13rem 1fr;
+    min-height: 0;
+  }
+
+  .columna { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .columna.izq { border-right: 1px solid var(--borde); }
+  .columna.der { border-left: 1px solid var(--borde); }
+
+  .cabecera-col { padding: .85rem 1.1rem .7rem; border-bottom: 1px solid var(--borde); }
+  .titulo-col { font-family: var(--mono); font-size: .82rem; font-weight: 600; letter-spacing: .04em; display: flex; align-items: center; gap: .5rem; }
+  .izq .titulo-col { color: var(--cliente); }
+  .der .titulo-col { color: var(--servidor); }
+  .sub-col { font-size: .74rem; color: var(--tinta-tenue); margin-top: .25rem; line-height: 1.45; }
+
+  .punto { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+  .punto.vivo { animation: latir 1.4s ease-in-out infinite; }
+  @keyframes latir { 0%,100% { opacity: 1 } 50% { opacity: .25 } }
+
+  /* mini-diagrama de cada lado */
+  .diagrama {
+    display: flex; align-items: center; gap: .35rem; flex-wrap: wrap;
+    padding: .6rem 1.1rem; border-bottom: 1px solid var(--borde);
+    font-family: var(--mono); font-size: .68rem; color: var(--tinta-tenue);
+  }
+  .caja { border: 1px solid var(--borde); border-radius: 2px; padding: .18rem .45rem; white-space: nowrap; }
+  .caja.on { border-color: currentColor; color: inherit; background: rgba(255,255,255,.04); }
+  .flecha { color: var(--tinta-tenue); }
+
+  .registro { flex: 1; overflow-y: auto; padding: .9rem 1.1rem 3rem; display: flex; flex-direction: column; gap: .55rem; }
+  .registro::-webkit-scrollbar { width: 8px; }
+  .registro::-webkit-scrollbar-thumb { background: var(--borde); border-radius: 4px; }
+
+  /* ── tarjetas de evento ─────────────────────────────────────── */
+
+  .evento {
+    border: 1px solid var(--borde);
+    border-left-width: 2px;
+    border-radius: 3px;
+    background: var(--panel);
+    padding: .55rem .7rem;
+    font-size: .82rem;
+    animation: entrar .22s ease-out both;
+  }
+  @keyframes entrar { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+  @media (prefers-reduced-motion: reduce) { .evento { animation: none } .punto.vivo { animation: none } }
+
+  .evento .fila { display: flex; align-items: baseline; gap: .5rem; }
+  .evento .icono { font-family: var(--mono); flex: none; }
+  .evento .titulo { font-family: var(--mono); font-weight: 600; font-size: .82rem; }
+  .evento .meta { margin-left: auto; font-family: var(--mono); font-size: .7rem; color: var(--tinta-tenue); white-space: nowrap; }
+  .evento .detalle {
+    font-family: var(--mono); font-size: .72rem; color: var(--tinta-baja);
+    margin-top: .35rem; word-break: break-all; line-height: 1.5;
+  }
+
+  .evento.pensando { border-left-color: var(--llm); color: var(--llm); }
+  .evento.eligio   { border-left-color: var(--cliente); color: var(--cliente); }
+  .evento.recibio  { border-left-color: var(--tinta-tenue); color: var(--tinta-baja); }
+  .evento.api      { border-left-color: var(--api); color: var(--api); }
+  .evento.db       { border-left-color: var(--db); color: var(--db); }
+  .evento.llm      { border-left-color: var(--llm); color: var(--llm); }
+  .evento.mcp      { border-left-color: var(--tinta-baja); color: var(--tinta-baja); }
+  .evento.error    { border-left-color: var(--alerta); color: var(--alerta); }
+
+  .etiqueta {
+    font-family: var(--mono); font-size: .62rem; letter-spacing: .06em; text-transform: uppercase;
+    border: 1px solid currentColor; border-radius: 2px; padding: .08rem .3rem; margin-left: auto; flex: none;
+  }
+
+  /* bloque JSON plegable dentro de una tarjeta */
+  .evento details { margin-top: .4rem; }
+  .evento summary {
+    font-family: var(--mono); font-size: .68rem; color: var(--tinta-tenue);
+    cursor: pointer; list-style: none; user-select: none;
+  }
+  .evento summary::-webkit-details-marker { display: none; }
+  .evento summary::before { content: "▸ "; }
+  .evento details[open] summary::before { content: "▾ "; }
+  .evento summary:hover { color: currentColor; }
+  .evento pre {
+    margin: .4rem 0 0; padding: .5rem .6rem; max-height: 15rem; overflow: auto;
+    background: #070B10; border: 1px solid var(--borde); border-radius: 2px;
+    font-family: var(--mono); font-size: .66rem; line-height: 1.5;
+    color: var(--tinta-baja); white-space: pre; tab-size: 2;
+  }
+  .evento pre::-webkit-scrollbar { width: 6px; height: 6px; }
+  .evento pre::-webkit-scrollbar-thumb { background: var(--borde); border-radius: 3px; }
+
+  .respuesta {
+    border: 1px solid var(--cliente); border-radius: 3px; background: rgba(110,168,255,.07);
+    padding: .8rem .9rem; font-size: .92rem; line-height: 1.6; color: var(--tinta);
+    animation: entrar .3s ease-out both;
+  }
+  .respuesta .rotulo { font-family: var(--mono); font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: var(--cliente); margin-bottom: .4rem; }
+
+  /* ── canal del medio ────────────────────────────────────────── */
+
+  .canal { display: flex; flex-direction: column; min-height: 0; background: #070B10; }
+  .canal .cabecera-col { text-align: center; }
+  .canal .titulo-col { justify-content: center; color: var(--tinta-baja); }
+  .cables { flex: 1; overflow: hidden; padding: .9rem .55rem; display: flex; flex-direction: column; gap: .4rem; position: relative; }
+
+  .cables::before {
+    content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px;
+    background: linear-gradient(180deg, transparent, var(--borde) 12%, var(--borde) 88%, transparent);
+  }
+
+  .msg {
+    font-family: var(--mono); font-size: .66rem; padding: .3rem .45rem;
+    border-radius: 2px; background: var(--panel-alto); border: 1px solid var(--borde);
+    position: relative; z-index: 1; line-height: 1.35; word-break: break-all;
+  }
+  .msg.va  { border-left: 2px solid var(--cliente); color: var(--cliente); }
+  .msg.vuelve { border-right: 2px solid var(--servidor); color: var(--servidor); text-align: right; }
+  .msg .flechita { opacity: .6; }
+
+  .vacio { color: var(--tinta-tenue); font-size: .78rem; text-align: center; padding: 1.5rem .5rem; line-height: 1.6; font-family: var(--sans); }
+
+  /* ── pie ────────────────────────────────────────────────────── */
+
+  footer {
+    border-top: 1px solid var(--borde); background: var(--panel);
+    padding: .5rem 1.25rem; font-family: var(--mono); font-size: .68rem;
+    color: var(--tinta-tenue); display: flex; gap: 1.25rem; flex-wrap: wrap;
+  }
+  .leyenda { display: flex; align-items: center; gap: .3rem; }
+  .swatch { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+
+  @media (max-width: 60rem) {
+    main { grid-template-columns: 1fr; grid-template-rows: auto auto auto; overflow-y: auto; }
+    .columna.izq, .columna.der { border: none; border-bottom: 1px solid var(--borde); }
+    .canal { order: 3; }
+    .registro { max-height: 22rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="marca">MCP en vivo</span>
+  <input id="pregunta" placeholder="Preguntá en castellano: ¿hubo sismos fuertes en Chile este mes?" autocomplete="off">
+  <select id="modelo" title="Modelo que decide qué tool activar">
+    <option value="gpt-oss:20b-cloud">gpt-oss 20b</option>
+    <option value="minimax-m3:cloud">minimax-m3</option>
+  </select>
+  <button id="enviar">Preguntar</button>
+</header>
+
+<div class="chips">
+  <button class="chip">¿Hubo sismos fuertes en Chile este mes?</button>
+  <button class="chip">Explicame la actividad sísmica en Japón</button>
+  <button class="chip">Seguí Indonesia con umbral 5 y dame el informe</button>
+  <button class="chip">Compará California con Turquía</button>
+</div>
+
+<main>
+  <!-- ── CLIENTE ─────────────────────────────────────────────── -->
+  <section class="columna izq">
+    <div class="cabecera-col">
+      <div class="titulo-col"><span class="punto" id="luz-cliente"></span>CLIENTE</div>
+      <div class="sub-col">
+        Acá vive el modelo que <strong>razona y elige</strong>. Recibe tu pregunta
+        junto a la lista de tools y decide cuál llamar.
+      </div>
+    </div>
+    <div class="diagrama" style="color: var(--cliente)">
+      <span class="caja" id="d-pregunta">tu pregunta</span>
+      <span class="flecha">→</span>
+      <span class="caja" id="d-modelo">modelo</span>
+      <span class="flecha">→</span>
+      <span class="caja" id="d-eleccion">elige tool</span>
+    </div>
+    <div class="registro" id="log-cliente">
+      <div class="vacio">Escribí una pregunta arriba.<br>Vas a ver cómo el modelo decide, paso a paso.</div>
+    </div>
+  </section>
+
+  <!-- ── CANAL ───────────────────────────────────────────────── -->
+  <section class="canal">
+    <div class="cabecera-col">
+      <div class="titulo-col">PROTOCOLO MCP</div>
+      <div class="sub-col">JSON-RPC sobre HTTP</div>
+    </div>
+    <div class="cables" id="canal"></div>
+  </section>
+
+  <!-- ── SERVIDOR ────────────────────────────────────────────── -->
+  <section class="columna der">
+    <div class="cabecera-col">
+      <div class="titulo-col"><span class="punto" id="luz-servidor"></span>SERVIDOR MCP</div>
+      <div class="sub-col">
+        Acá <strong>no se decide nada</strong>: se ejecuta lo que pidieron.
+        Cada tool dice de qué fuente saca los datos.
+      </div>
+    </div>
+    <div class="diagrama" style="color: var(--servidor)">
+      <span class="caja" id="d-tool">tool</span>
+      <span class="flecha">→</span>
+      <span class="caja" id="d-api" style="color:var(--api)">API</span>
+      <span class="caja" id="d-db" style="color:var(--db)">DB</span>
+      <span class="caja" id="d-llm" style="color:var(--llm)">LLM</span>
+    </div>
+    <div class="registro" id="log-servidor">
+      <div class="vacio">Esperando actividad del servidor…</div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span class="leyenda"><span class="swatch" style="background:var(--api)"></span>API pública (USGS)</span>
+  <span class="leyenda"><span class="swatch" style="background:var(--db)"></span>Base local (SQLite)</span>
+  <span class="leyenda"><span class="swatch" style="background:var(--llm)"></span>Modelo abierto</span>
+  <span id="estado" style="margin-left:auto"></span>
+</footer>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const logCliente = $("log-cliente");
+  const logServidor = $("log-servidor");
+  const canal = $("canal");
+  const estado = $("estado");
+  const boton = $("enviar");
+  const entrada = $("pregunta");
+
+  let corriendo = null;
+
+  /* ── helpers de dibujo ─────────────────────────────────────── */
+
+  function limpiar(nodo, texto) {
+    nodo.innerHTML = texto ? `<div class="vacio">${texto}</div>` : "";
+  }
+
+  function tarjeta(contenedor, { clase, icono, titulo, detalle, meta, etiqueta, codigo, rotuloCodigo }) {
+    if (contenedor.querySelector(".vacio")) contenedor.innerHTML = "";
+    const el = document.createElement("div");
+    el.className = `evento ${clase}`;
+    const fila = document.createElement("div");
+    fila.className = "fila";
+    fila.innerHTML =
+      `<span class="icono">${icono}</span><span class="titulo">${titulo}</span>` +
+      (etiqueta ? `<span class="etiqueta">${etiqueta}</span>` : "") +
+      (meta ? `<span class="meta">${meta}</span>` : "");
+    el.appendChild(fila);
+    if (detalle) {
+      const d = document.createElement("div");
+      d.className = "detalle";
+      d.textContent = detalle;
+      el.appendChild(d);
+    }
+    if (codigo) {
+      const det = document.createElement("details");
+      const sum = document.createElement("summary");
+      sum.textContent = rotuloCodigo || "ver payload";
+      const pre = document.createElement("pre");
+      pre.textContent = codigo;
+      det.append(sum, pre);
+      el.appendChild(det);
+    }
+    contenedor.appendChild(el);
+    contenedor.scrollTop = contenedor.scrollHeight;
+    return el;
+  }
+
+  function mensaje(direccion, texto) {
+    const el = document.createElement("div");
+    el.className = `msg ${direccion}`;
+    el.innerHTML = direccion === "va"
+      ? `<span class="flechita">▶</span> ${texto}`
+      : `${texto} <span class="flechita">◀</span>`;
+    canal.appendChild(el);
+    while (canal.children.length > 14) canal.removeChild(canal.firstChild);
+    return el;
+  }
+
+  const encender = (id, on) => $(id).classList.toggle("on", on);
+  const latir = (id, on) => $(id).classList.toggle("vivo", on);
+
+  function resetDiagramas() {
+    ["d-pregunta","d-modelo","d-eleccion","d-tool","d-api","d-db","d-llm"].forEach((i) => encender(i, false));
+  }
+
+  /* ── stream del SERVIDOR (proceso :8787) ───────────────────── */
+
+  fetch("/api/config").then((r) => r.json()).then((cfg) => {
+    estado.textContent = `MCP ${cfg.urlMcp}`;
+
+    // El backend manda: si arrancó con otro LLM_MODEL, el selector lo refleja
+    // (y si ese modelo no está en la lista, se agrega).
+    const sel = $("modelo");
+    if (cfg.modeloPorDefecto) {
+      if (![...sel.options].some((o) => o.value === cfg.modeloPorDefecto)) {
+        const op = document.createElement("option");
+        op.value = op.textContent = cfg.modeloPorDefecto;
+        sel.appendChild(op);
+      }
+      sel.value = cfg.modeloPorDefecto;
+    }
+    const es = new EventSource(cfg.urlEventosServidor);
+
+    es.onopen = () => latir("luz-servidor", false);
+
+    es.onmessage = (ev) => {
+      const e = JSON.parse(ev.data);
+      const fuente = (e.fuente || "MCP").toLowerCase();
+      const nombreFuente = { api: "API · USGS", db: "DB · sqlite", llm: "LLM · abierto", mcp: "MCP" }[fuente];
+
+      if (e.tipo === "inicio") {
+        latir("luz-servidor", true);
+        encender("d-tool", true);
+        encender(`d-${fuente}`, true);
+        tarjeta(logServidor, {
+          clase: fuente, icono: "▸", titulo: e.tool,
+          etiqueta: nombreFuente,
+          detalle: e.input && Object.keys(e.input).length ? JSON.stringify(e.input) : null,
+        });
+      } else if (e.tipo === "paso") {
+        tarjeta(logServidor, { clase: fuente, icono: "↳", titulo: "", detalle: e.texto });
+      } else if (e.tipo === "fin") {
+        latir("luz-servidor", false);
+        encender("d-tool", false);
+        encender(`d-${fuente}`, false);
+        tarjeta(logServidor, { clase: fuente, icono: "✓", titulo: e.texto, meta: `${e.ms}ms` });
+      } else if (e.tipo === "error") {
+        latir("luz-servidor", false);
+        resetDiagramas();
+        tarjeta(logServidor, { clase: "error", icono: "✗", titulo: e.texto, meta: `${e.ms}ms` });
+      }
+    };
+
+    es.onerror = () => {
+      latir("luz-servidor", false);
+      estado.textContent = "servidor MCP desconectado — ¿corre npm run dev?";
+    };
+  });
+
+  /* ── stream del CLIENTE (este proceso) ─────────────────────── */
+
+  function preguntar(texto) {
+    if (corriendo) corriendo.close();
+    limpiar(logCliente, "");
+    limpiar(canal, "");
+    resetDiagramas();
+    boton.disabled = true;
+
+    const modeloPedido = $("modelo").value;
+    // Se sobrescribe con el que confirme el backend en el evento "conectado".
+    let modeloEnUso = modeloPedido;
+    encender("d-pregunta", true);
+
+    tarjeta(logCliente, { clase: "eligio", icono: "›", titulo: "Pregunta del usuario", detalle: texto });
+
+    const url = `/api/preguntar?q=${encodeURIComponent(texto)}&modelo=${encodeURIComponent(modeloPedido)}`;
+    const es = new EventSource(url);
+    corriendo = es;
+
+    es.onmessage = (ev) => {
+      const e = JSON.parse(ev.data);
+
+      switch (e.tipo) {
+        case "conectado":
+          latir("luz-cliente", true);
+          modeloEnUso = e.modelo;            // ← la verdad viene del backend
+          $("d-modelo").textContent = e.modelo;
+          mensaje("va", "initialize");
+          break;
+
+        case "tools-listadas":
+          mensaje("va", "tools/list");
+          mensaje("vuelve", `${e.cantidadTools} tools`);
+          tarjeta(logCliente, {
+            clase: "recibio", icono: "◇",
+            titulo: `El servidor ofrece ${e.cantidadTools} tools`,
+            detalle: e.nombresTools.join("  ·  "),
+            codigo: e.ejemploTool,
+            rotuloCodigo: "cómo ve el cliente una tool (MCP → formato OpenAI)",
+          });
+          break;
+
+        case "request-llm":
+          tarjeta(logCliente, {
+            clase: "pensando", icono: "↑",
+            titulo: "Request al modelo",
+            detalle: e.endpoint,
+            codigo: e.cuerpoRequest,
+            rotuloCodigo: "cuerpo del POST",
+          });
+          break;
+
+        case "pensando":
+          encender("d-modelo", true);
+          encender("d-eleccion", false);
+          tarjeta(logCliente, {
+            clase: "pensando", icono: "⋯",
+            titulo: `${modeloEnUso} está decidiendo`,
+            detalle: "Recibe la conversación + las tools disponibles y elige el próximo paso.",
+          });
+          break;
+
+        case "tool":
+          encender("d-modelo", false);
+          encender("d-eleccion", true);
+          tarjeta(logCliente, {
+            clase: "eligio", icono: "⚙",
+            titulo: `Eligió  ${e.tool}`,
+            detalle: JSON.stringify(e.args),
+          });
+          mensaje("va", `tools/call<br>${e.tool}`);
+          break;
+
+        case "resultado":
+          encender("d-eleccion", false);
+          tarjeta(logCliente, {
+            clase: e.error ? "error" : "recibio",
+            icono: e.error ? "✗" : "◂",
+            titulo: e.error ? "La tool devolvió un error" : "Recibió el resultado",
+            meta: `${e.ms}ms`,
+            detalle: e.vistazo || (e.error ? "El modelo lo lee y puede corregirse." : null),
+          });
+          mensaje("vuelve", e.error ? "isError" : "tool_result");
+          break;
+
+        case "respuesta": {
+          latir("luz-cliente", false);
+          resetDiagramas();
+          if (logCliente.querySelector(".vacio")) logCliente.innerHTML = "";
+          const box = document.createElement("div");
+          box.className = "respuesta";
+          box.innerHTML = `<div class="rotulo">Respuesta final</div>`;
+          const p = document.createElement("div");
+          p.textContent = e.texto;
+          box.appendChild(p);
+          logCliente.appendChild(box);
+          logCliente.scrollTop = logCliente.scrollHeight;
+          break;
+        }
+
+        case "fallo":
+          latir("luz-cliente", false);
+          tarjeta(logCliente, { clase: "error", icono: "✗", titulo: "Falló", detalle: e.texto });
+          break;
+
+        case "fin":
+          latir("luz-cliente", false);
+          resetDiagramas();
+          $("d-modelo").textContent = "modelo";
+          boton.disabled = false;
+          es.close();
+          corriendo = null;
+          break;
+      }
+    };
+
+    es.onerror = () => {
+      latir("luz-cliente", false);
+      boton.disabled = false;
+      es.close();
+      corriendo = null;
+    };
+  }
+
+  /* ── interacción ───────────────────────────────────────────── */
+
+  const lanzar = () => {
+    const t = entrada.value.trim();
+    if (t) preguntar(t);
+  };
+
+  boton.addEventListener("click", lanzar);
+  entrada.addEventListener("keydown", (e) => { if (e.key === "Enter") lanzar(); });
+  document.querySelectorAll(".chip").forEach((c) =>
+    c.addEventListener("click", () => { entrada.value = c.textContent; lanzar(); }),
+  );
+})();
+</script>
+</body>
+</html>
