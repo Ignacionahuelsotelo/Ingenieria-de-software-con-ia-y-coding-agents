@@ -1,0 +1,901 @@
+<title>Cierre del curso</title>
+
+<style>
+  :root {
+    --paper:     #F1F3F5;
+    --surface:   #FFFFFF;
+    --ink:       #15181E;
+    --ink-soft:  #59606E;
+    --ink-faint: #8B93A1;
+    --rule:      #D2D7DE;
+    --accent:    #1D5F5A;
+    --accent-bg: #DCEAE8;
+    --flag:      #A33D2E;
+    --flag-bg:   #F5E3DF;
+
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:     #0F1116;
+      --surface:   #171A21;
+      --ink:       #E7EAEF;
+      --ink-soft:  #99A1AF;
+      --ink-faint: #6B7383;
+      --rule:      #292F39;
+      --accent:    #5FB5AC;
+      --accent-bg: #16302E;
+      --flag:      #D9806D;
+      --flag-bg:   #33201C;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:     #0F1116;
+    --surface:   #171A21;
+    --ink:       #E7EAEF;
+    --ink-soft:  #99A1AF;
+    --ink-faint: #6B7383;
+    --rule:      #292F39;
+    --accent:    #5FB5AC;
+    --accent-bg: #16302E;
+    --flag:      #D9806D;
+    --flag-bg:   #33201C;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck { position: relative; }
+
+  .slide {
+    display: none;
+    min-height: 100vh;
+    padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1.25rem, 6vw, 6rem) 5.5rem;
+    max-width: 74rem;
+    margin: 0 auto;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(.8rem, 2vw, 1.5rem);
+  }
+  .slide.on { display: flex; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .slide.on { animation: rise .28s cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+  }
+
+  .clause {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+  }
+  .clause::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(1.9rem, 5.5vw, 3.6rem);
+    line-height: 1.04;
+    letter-spacing: -.035em;
+    font-weight: 600;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h2 {
+    font-family: var(--mono);
+    font-size: clamp(1.35rem, 3.4vw, 2.2rem);
+    line-height: 1.13;
+    letter-spacing: -.028em;
+    font-weight: 600;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h3 { font-family: var(--mono); font-size: .98rem; letter-spacing: -.01em; font-weight: 600; margin: 0; }
+
+  p, li { font-size: clamp(.92rem, 1.4vw, 1.08rem); line-height: 1.6; margin: 0; }
+  p.lead { font-size: clamp(1rem, 1.85vw, 1.3rem); color: var(--ink-soft); max-width: 52ch; }
+  .muted { color: var(--ink-soft); }
+  .small { font-size: .9rem; }
+  strong { font-weight: 650; }
+
+  ul { margin: 0; padding-left: 1.15rem; display: flex; flex-direction: column; gap: .5rem; }
+  li::marker { color: var(--accent); }
+
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr)); gap: clamp(.8rem, 1.8vw, 1.5rem); }
+  .cols.dos { grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: .95rem 1.05rem;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+  }
+  .card p, .card li { font-size: .9rem; color: var(--ink-soft); }
+  .card h3 { color: var(--ink); }
+
+  .stamp {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: .66rem;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    padding: .2rem .45rem;
+    border-radius: 2px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    width: fit-content;
+  }
+  .stamp.warn { background: var(--flag-bg); color: var(--flag); }
+
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 32rem; font-size: clamp(.82rem, 1.25vw, .98rem); }
+  th, td { text-align: left; padding: .55rem .75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th {
+    font-family: var(--mono); font-size: .66rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-soft); font-weight: 500;
+  }
+  td.mono { font-family: var(--mono); font-size: .88em; }
+
+  blockquote {
+    margin: 0;
+    padding: .9rem 0 .9rem 1.3rem;
+    border-left: 3px solid var(--accent);
+    font-size: clamp(1.05rem, 2vw, 1.5rem);
+    line-height: 1.38;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+  }
+
+  code.inline {
+    font-family: var(--mono); font-size: .88em;
+    background: var(--accent-bg); color: var(--accent);
+    padding: .08rem .32rem; border-radius: 2px;
+  }
+
+  .flow {
+    font-family: var(--mono);
+    font-size: clamp(.68rem, 1.25vw, .9rem);
+    line-height: 1.65;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: .9rem 1.05rem;
+    white-space: pre;
+    overflow-x: auto;
+    color: var(--ink-soft);
+  }
+  .flow b { color: var(--ink); font-weight: 600; }
+  .flow i { color: var(--accent); font-style: normal; }
+
+  .par { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .par > div { padding: .8rem .95rem; background: var(--surface); }
+  .par > div:first-child { border-right: 1px solid var(--rule); }
+  .par .rot { font-family: var(--mono); font-size: .64rem; letter-spacing: .09em; text-transform: uppercase; margin-bottom: .35rem; }
+  .par .mal .rot { color: var(--flag); }
+  .par .bien .rot { color: var(--accent); }
+  .par p { font-size: .88rem; line-height: 1.55; }
+  .par code { font-family: var(--mono); font-size: .84rem; }
+  @media (max-width: 44rem) { .par { grid-template-columns: 1fr } .par > div:first-child { border-right: none; border-bottom: 1px solid var(--rule) } }
+
+  .fuente {
+    font-size: .78rem; color: var(--ink-faint);
+    border-top: 1px solid var(--rule); padding-top: .55rem;
+  }
+
+  .link { color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor; }
+  .link:hover { opacity: .75; }
+
+  .bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    height: 3.25rem; display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; padding: 0 clamp(1rem, 4vw, 2.5rem);
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .72rem; color: var(--ink-soft);
+  }
+  .bar .title { letter-spacing: .1em; text-transform: uppercase; }
+  .nav { display: flex; align-items: center; gap: .35rem; }
+  .nav button {
+    font-family: var(--mono); font-size: .8rem;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 2px;
+    padding: .3rem .6rem; cursor: pointer; line-height: 1;
+  }
+  .nav button:hover { border-color: var(--accent); color: var(--accent); }
+  .nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .count { font-variant-numeric: tabular-nums; min-width: 4rem; text-align: center; }
+
+  .prog { position: fixed; top: 0; left: 0; height: 2px; background: var(--accent); transition: width .25s ease; z-index: 5; }
+  @media (prefers-reduced-motion: reduce) { .prog { transition: none } }
+
+  @media (max-width: 40rem) { .bar .title { display: none } }
+</style>
+
+<div class="prog" id="prog"></div>
+
+<div class="deck" id="deck">
+
+<!-- ══ 1 ══ -->
+<section class="slide on">
+  <div class="clause">Ingeniería de Software con IA y Coding Agents · Cierre</div>
+  <h1>Repaso, buenas prácticas<br>y por dónde seguir</h1>
+  <p class="lead">Los cuatro proyectos que construimos, qué pieza de harness aportó cada uno, y qué hacer con eso en un repo propio.</p>
+</section>
+
+<!-- ══ 2 ══ -->
+<section class="slide">
+  <div class="clause">00 · Encuadre</div>
+  <h2>El objeto de estudio no fue la herramienta</h2>
+  <p class="lead">Fue el <strong>harness</strong>: el contexto, las herramientas, los permisos y las verificaciones que rodean al modelo.</p>
+  <div class="flow">      modelo          ← se reemplaza cada pocos meses
+
+  ┌─────────────────────────────┐
+  │  contexto  ·  herramientas  │   ← lo construís vos,
+  │  permisos  ·  verificación  │      y decide el resultado
+  └─────────────────────────────┘</div>
+  <p class="muted">Dos personas con el mismo modelo obtienen resultados distintos según lo que le pusieron alrededor. Esa diferencia es el tema del curso.</p>
+</section>
+
+<!-- ══ 3 ══ -->
+<section class="slide">
+  <div class="clause">01 · Mapa</div>
+  <h2>Los cuatro proyectos</h2>
+  <div class="cols">
+    <div class="card">
+      <span class="stamp">Proyecto 1</span>
+      <h3>fútbol</h3>
+      <p>Consumir un MCP existente. Primeras skills, primeros subagentes, primer hook.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">Proyecto 2</span>
+      <h3>turnos</h3>
+      <p>Spec-driven development con Spec Kit, el toolkit oficial de GitHub.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">Proyecto 3</span>
+      <h3>gastos</h3>
+      <p>Cinco agentes con roles y permisos, coordinados por un tablero compartido.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">Proyecto 4</span>
+      <h3>sismos</h3>
+      <p>Construir un servidor MCP completo, con cliente propio y modelo abierto.</p>
+    </div>
+  </div>
+  <p class="muted">Cada proyecto agregó una pieza sin reemplazar la anterior. Al final conviven todas.</p>
+</section>
+
+<!-- ══ 4 ══ -->
+<section class="slide">
+  <div class="clause">02 · Proyecto 1</div>
+  <h2>fútbol — consumir un MCP</h2>
+  <div class="cols dos">
+    <div class="card">
+      <h3>Qué hicimos</h3>
+      <ul>
+        <li>Conectamos el MCP de SportDB con un comando y lo dejamos en <code class="inline">.mcp.json</code>, versionado</li>
+        <li>Un subagente exploró la API tool por tool y escribió <code class="inline">docs/sportdb-api.md</code></li>
+        <li>De ese documento salió una skill con los ids de liga y los formatos de fecha</li>
+        <li>Un hook en el evento <code class="inline">Stop</code> bloquea el turno si falta el test de una ruta</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Qué dejó cada decisión</h3>
+      <ul>
+        <li><strong>El subagente corre en su propia ventana de contexto.</strong> Hizo 20 llamadas y trajo megabytes de JSON; a la sesión principal volvieron diez líneas</li>
+        <li><strong>Devuelve un resumen, no todo lo que vio.</strong> Por eso el subagente <em>escribe un archivo</em>: es el único lugar donde el detalle sobrevive</li>
+        <li><strong>El hook no escribe el test.</strong> Se niega a terminar el turno hasta que exista</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 5 ══ -->
+<section class="slide">
+  <div class="clause">03 · Proyecto 2</div>
+  <h2>turnos — spec-driven development</h2>
+  <div class="flow">constitution → specify → <b>clarify</b> → plan → tasks → <b>analyze</b> → implement → <b>converge</b></div>
+  <div class="cols">
+    <div class="card">
+      <span class="stamp">clarify</span>
+      <p>Hace hasta cinco preguntas sobre lo que quedó ambiguo y <strong>escribe las respuestas de vuelta en el spec</strong>. Sobre "un sistema de turnos" salieron seis decisiones sin tomar: anticipación mínima, doble reserva, plazo de cancelación.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">analyze</span>
+      <p>Compara spec, plan y tareas entre sí. En nuestra corrida encontró siete tareas apuntando a un directorio que el plan declaraba eliminado — antes de escribir una línea de código.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">converge</span>
+      <p>Después de implementar, compara el código contra el spec original y genera las tareas de lo que quedó afuera. Sin este paso el pipeline termina cuando alguien dice "listo".</p>
+    </div>
+  </div>
+  <p class="muted">Las tres fases opcionales son justamente las que un pipeline casero no tiene. Existen porque son los tres puntos donde el método falla en la práctica.</p>
+</section>
+
+<!-- ══ 6 ══ -->
+<section class="slide">
+  <div class="clause">04 · Proyecto 3</div>
+  <h2>gastos — cinco agentes coordinados</h2>
+  <div class="scroll">
+    <table>
+      <tr><th>Rol</th><th>Dueño de</th><th>No puede</th></tr>
+      <tr><td class="mono">analyst</td><td>docs/prd.md</td><td>decidir stack ni diseño técnico</td></tr>
+      <tr><td class="mono">architect</td><td>architecture.md, specs/</td><td>escribir código</td></tr>
+      <tr><td class="mono">dev</td><td>backend/, frontend/</td><td>cambiar specs ni arquitectura</td></tr>
+      <tr><td class="mono">qa</td><td>tests/, qa-report.md</td><td>arreglar código de producción</td></tr>
+      <tr><td class="mono">reviewer</td><td>docs/reviews/</td><td>escribir código</td></tr>
+    </table>
+  </div>
+  <p class="lead">Lo que los convierte en equipo no es la cantidad, sino que cada uno tenga <strong>un entregable, un permiso y un límite</strong>.</p>
+  <p class="muted">Ningún agente le habla a otro: dejan estado en un tablero editable y una bitácora append-only. Es una <strong>arquitectura de pizarrón</strong> — un patrón de los años 70 que funciona acá porque cada agente corre en su propio contexto y no sabe que los demás existen.</p>
+</section>
+
+<!-- ══ 7 ══ -->
+<section class="slide">
+  <div class="clause">05 · Proyecto 4</div>
+  <h2>sismos — construir el servidor</h2>
+  <div class="cols">
+    <div class="card">
+      <h3>Las tres primitivas</h3>
+      <ul>
+        <li><strong>Tools</strong> — las invoca el modelo</li>
+        <li><strong>Resources</strong> — los lee la aplicación, por URI</li>
+        <li><strong>Prompts</strong> — los elige el usuario</li>
+      </ul>
+      <p>La diferencia entre las tres es <em>quién dispara</em>.</p>
+    </div>
+    <div class="card">
+      <h3>Las tres fuentes</h3>
+      <ul>
+        <li>API pública sin key (USGS)</li>
+        <li>Base local (SQLite)</li>
+        <li>Un modelo abierto, dentro de dos tools</li>
+      </ul>
+      <p>Una sola tool, <code class="inline">informe_watchlist</code>, encadena las tres.</p>
+    </div>
+    <div class="card">
+      <h3>Y un cliente propio</h3>
+      <ul>
+        <li>La entrada es lenguaje natural</li>
+        <li>Un modelo abierto elige qué tool llamar</li>
+        <li>Sin Claude en ningún punto del camino</li>
+      </ul>
+    </div>
+  </div>
+  <p class="muted">El servidor MCP no orquesta: expone capacidades. El modelo que decide vive del lado del cliente — por eso el mismo servidor funciona con cualquier modelo.</p>
+</section>
+
+<!-- ══ 8 ══ -->
+<section class="slide">
+  <div class="clause">06 · Síntesis</div>
+  <h2>Las cuatro piezas, y cuándo usar cada una</h2>
+  <div class="scroll">
+    <table>
+      <tr><th>Pieza</th><th>Cuándo entra en juego</th><th>Garantía</th><th>Usala para</th></tr>
+      <tr><td class="mono">CLAUDE.md<br>AGENTS.md</td><td>En cada request, siempre</td><td>El modelo lo lee y decide</td><td>Lo que vale para todo el proyecto</td></tr>
+      <tr><td class="mono">Skill</td><td>Cuando la descripción coincide con la tarea</td><td>El modelo lo lee y decide</td><td>Conocimiento de un dominio o una tarea</td></tr>
+      <tr><td class="mono">Subagente</td><td>Cuando se lo delegás</td><td>El modelo lo lee y decide</td><td>Trabajo aislado, con otros permisos</td></tr>
+      <tr><td class="mono">Hook</td><td>En un evento del ciclo de vida</td><td><strong>El harness lo ejecuta y bloquea</strong></td><td>Lo que no puede fallar nunca</td></tr>
+    </table>
+  </div>
+  <p class="lead">Las tres primeras <strong>orientan</strong>; la cuarta <strong>obliga</strong>. La pregunta para elegir es: si esta regla no se cumple una de cada veinte veces, ¿me importa?</p>
+</section>
+
+<!-- ══ 9 ══ -->
+<section class="slide">
+  <div class="clause">07 · Contexto</div>
+  <h2>Qué darle al modelo, y dónde ponerlo</h2>
+  <div class="cols">
+    <div class="card">
+      <span class="stamp">1</span>
+      <h3>Dale contexto, no solo órdenes</h3>
+      <p>Para quién es el producto, qué convenciones sigue el repo, qué restricciones hay <strong>y por qué</strong>. Eso el modelo no lo puede deducir del código: es lo único que solo sabés vos.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">2</span>
+      <h3>Siempre vs. cuando aplica</h3>
+      <p>Si vale para todo el proyecto, va en CLAUDE.md y se carga en cada request. Si vale para una tarea puntual, va en una skill — así no pagás su costo de contexto cuando no la necesitás.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">3</span>
+      <h3>Documento largo, regla corta</h3>
+      <p>El documento de referencia se consulta cuando hace falta. La skill es corta y se activa sola. Que la skill <strong>remita</strong> al documento en vez de copiarlo: si no, cuando actualizás uno el otro queda mintiendo.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">4</span>
+      <h3>El estado vive en archivos</h3>
+      <p>No en la memoria de la sesión. Por eso podés cerrar la terminal, cambiar de modelo o de herramienta y retomar donde estabas — y por eso todo esto se revisa en un pull request.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 10 ══ -->
+<section class="slide">
+  <div class="clause">08 · Instrucciones · 1 de 3</div>
+  <h2>Decí cuándo se usa, no solo qué hace</h2>
+  <p class="lead">La descripción de una tool o una skill no es documentación: es <strong>el criterio de activación</strong>. Es lo que el modelo lee para decidir si la usa.</p>
+  <div class="par">
+    <div class="mal">
+      <div class="rot">Descripción que no activa bien</div>
+      <p><code>"Busca sismos en la base del USGS filtrando por región y magnitud."</code></p>
+      <p class="muted" style="margin-top:.5rem">Correcta y completa. Pero solo describe la mecánica: el modelo tiene que inferir cuándo le sirve.</p>
+    </div>
+    <div class="bien">
+      <div class="rot">La que usamos</div>
+      <p><code>"Busca sismos en la base del USGS filtrando por región, magnitud mínima y ventana de días. <strong>Es la tool principal: usala para '¿hubo sismos en X?', '¿tembló fuerte esta semana?' o cualquier consulta sobre actividad sísmica reciente.</strong>"</code></p>
+    </div>
+  </div>
+  <p class="muted">Lo mismo aplica al <code class="inline">description</code> de una skill: <em>"Usar SIEMPRE que se escriba código que llame una tool <code class="inline">mcp__sismos__*</code>"</em> activa; <em>"Documentación del MCP de sismos"</em> no.</p>
+</section>
+
+<!-- ══ 11 ══ -->
+<section class="slide">
+  <div class="clause">09 · Instrucciones · 2 de 3</div>
+  <h2>Reemplazá cada adjetivo por algo verificable</h2>
+  <p class="lead">Los adjetivos describen un resultado en vez de elegirlo. Todo proyecto que pide "moderno y limpio" recibe la misma página.</p>
+  <div class="par">
+    <div class="mal">
+      <div class="rot">Brief de diseño vago</div>
+      <p>"Un frontend moderno, limpio y minimalista para la app de resultados."</p>
+      <p class="muted" style="margin-top:.5rem">Resultado: fondo crema, serif de alto contraste, acento terracota. La estética a la que converge todo output generado hoy.</p>
+    </div>
+    <div class="bien">
+      <div class="rot">El que usamos</div>
+      <p>"Referencia: los teletextos de resultados de los 80, con marcadores monoespaciados sobre bloques sólidos de color. <strong>Restricción dura: cero border-radius y cero sombras.</strong> No usar: gradientes, glassmorphism, acento violeta."</p>
+    </div>
+  </div>
+  <p class="muted">Tres partes: un <strong>referente concreto</strong> del mundo del tema, una <strong>restricción dura</strong> que fuerza a resolverlo de otra manera, y una <strong>lista de prohibidos</strong> con los defaults del modelo. La misma estructura sirve para código: en vez de "hacelo robusto", <em>"toda ruta nueva necesita su test en backend/tests/"</em>.</p>
+</section>
+
+<!-- ══ 12 ══ -->
+<section class="slide">
+  <div class="clause">10 · Instrucciones · 3 de 3</div>
+  <h2>Cerrá el alcance y el formato de salida</h2>
+  <div class="cols dos">
+    <div class="card">
+      <h3>Lista cerrada de archivos</h3>
+      <p>En los specs del proyecto de turnos, cada uno lleva una tabla de archivos a crear o modificar, seguida de una línea literal:</p>
+      <div class="flow" style="margin-top:.4rem">No crear ningún otro archivo.
+No tocar frontend/.</div>
+      <p style="margin-top:.4rem">Sin eso, el agente "aprovecha" y refactoriza de paso. Con eso, <code class="inline">git status</code> se compara contra la tabla y el desvío se ve solo.</p>
+    </div>
+    <div class="card">
+      <h3>Criterios verificables con un comando</h3>
+      <p>Comparados con los que suenan bien y no significan nada:</p>
+      <div class="flow" style="margin-top:.4rem"><i>✓</i> npm test pasa
+<i>✓</i> POST /api/ask responde 200 con {answer}
+<i>✓</i> git status no muestra cambios en frontend/
+
+<b>✗</b> el código queda limpio
+<b>✗</b> buen manejo de errores</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Y pedí un artefacto que solo se produce siendo riguroso</h3>
+    <p>El agente revisor del curso exige, por cada hallazgo, un campo <strong>"Cómo falla"</strong> con un input concreto que rompa el código, más la regla: <em>"si no podés escribir ese input, no es un hallazgo: borralo"</em>. Un modelo al que le pedís "revisá" siempre encuentra algo — quiere ser útil. Forzarlo a demostrar la falla elimina los hallazgos inventados sin pedirle que "sea riguroso".</p>
+  </div>
+</section>
+
+<!-- ══ 13 ══ -->
+<section class="slide">
+  <div class="clause">11 · Instrucciones</div>
+  <h2>Lo que dejó de funcionar</h2>
+  <p class="lead">Estas técnicas se escribieron para modelos que desobedecían. Con los modelos actuales <strong>empeoran el resultado</strong>, no lo mejoran.</p>
+  <div class="cols">
+    <div class="card">
+      <span class="stamp warn">Énfasis inflado</span>
+      <p><code class="inline">CRITICAL: You MUST use this tool…</code></p>
+      <p>Hoy la tool se dispara de más — se documentó el caso de modelos buscando en la web para responder una cuenta simple. La forma correcta es <code class="inline">"Usá esta tool cuando…"</code>.</p>
+    </div>
+    <div class="card">
+      <span class="stamp warn">Pedir verificación</span>
+      <p><code class="inline">"Revisá tu trabajo antes de responder"</code></p>
+      <p>Los modelos actuales ya verifican solos. La instrucción produce sobre-verificación: pasos redundantes y más tokens. Anthropic recomienda <strong>borrarla</strong>, no reescribirla.</p>
+    </div>
+    <div class="card">
+      <span class="stamp warn">Guionar el juicio</span>
+      <p><code class="inline">"PASO 1… PASO 2… PASO 3…"</code></p>
+      <p>Para tareas de criterio, el plan del modelo suele ser mejor que el guion escrito a mano. Describí el resultado y las restricciones. Guioná solo lo frágil: comandos destructivos, flujos de auth.</p>
+    </div>
+    <div class="card">
+      <span class="stamp warn">Sobrecargar el rol</span>
+      <p><code class="inline">"Sos un experto senior con 20 años…"</code></p>
+      <p>Una línea de rol está bien. El problema es cuando reemplaza al contexto real: qué producto, qué público, qué nivel de calidad. Sé explícito sobre la perspectiva que querés.</p>
+    </div>
+  </div>
+  <p class="fuente">Fuentes: <a class="link" href="https://claude.com/blog/best-practices-for-prompt-engineering">Prompt engineering best practices — Anthropic</a> ("menos andamiaje, más curación"; XML y role prompting ya no hacen falta) · <a class="link" href="https://platform.claude.com/docs/en/about-claude/models/migration-guide">Migration guide — Anthropic</a> (secciones <em>Prompt-Behavior Changes</em> de cada modelo, con las tablas antes/después).</p>
+</section>
+
+<!-- ══ 14 ══ -->
+<section class="slide">
+  <div class="clause">12 · Permisos</div>
+  <h2>Cada agente, el permiso mínimo</h2>
+  <div class="scroll">
+    <table>
+      <tr><th>Agente</th><th>Puede escribir en</th><th>Por qué ese límite</th></tr>
+      <tr><td class="mono">mcp-scout</td><td>solo <code class="inline">docs/</code></td><td>Explora y documenta. No tiene motivo para tocar código.</td></tr>
+      <tr><td class="mono">code-reviewer</td><td>solo <code class="inline">docs/reviews/</code></td><td>Un revisor que puede arreglar deja de revisar y se pone a arreglar.</td></tr>
+      <tr><td class="mono">dev</td><td>todo el código</td><td>Lo necesita. Por eso es el que lleva más restricciones escritas.</td></tr>
+    </table>
+  </div>
+  <p class="lead">La pregunta al diseñar un agente no es "¿qué le dejo hacer?" sino <strong>"¿qué es lo mínimo que necesita para su tarea?"</strong></p>
+</section>
+
+<!-- ══ 15 ══ -->
+<section class="slide">
+  <div class="clause">13 · Permisos</div>
+  <h2>Cuando el agente actúa fuera del repo</h2>
+  <p class="lead">Ejemplo del curso: el revisor pasa de escribir un archivo a <strong>abrir issues en GitHub</strong>. Ahí aparecen tres preguntas que antes no existían.</p>
+  <div class="cols">
+    <div class="card">
+      <h3>¿Qué pasa si corre dos veces?</h3>
+      <p>Si el revisor se ejecuta de nuevo sobre el mismo diff, abre los mismos issues duplicados. <strong>Solución:</strong> antes de crear, listar los issues abiertos y comparar. Sin ese paso, cada corrida ensucia el repositorio.</p>
+    </div>
+    <div class="card">
+      <h3>¿Cuál es el peor caso?</h3>
+      <p>Si el modelo se entusiasma y encuentra treinta hallazgos, abre treinta issues. <strong>Solución:</strong> un tope duro escrito en el agente — máximo 8 por corrida, y solo los de severidad alta. El resto queda en el archivo.</p>
+    </div>
+    <div class="card">
+      <h3>¿Cuánto cuesta deshacerlo?</h3>
+      <p>Cerrar un issue de más lleva un click. Un <code class="inline">git push --force</code> o un mail enviado, no. <strong>Regla:</strong> el agente puede hacer lo que sea barato de revertir; todo lo demás pasa por vos.</p>
+    </div>
+  </div>
+  <p class="muted">Las tres respuestas se escriben en el prompt del agente. Son instrucciones en lenguaje natural, o sea probabilísticas — si el riesgo es alto, la versión dura es un hook que intercepte el comando antes de que se ejecute.</p>
+</section>
+
+<!-- ══ 16 ══ -->
+<section class="slide">
+  <div class="clause">14 · Control</div>
+  <h2>Un error devuelto es información; uno lanzado corta la conversación</h2>
+  <p class="lead">Cuando una tool falla, tenés dos opciones — y la diferencia cambia lo que puede hacer el agente después.</p>
+  <div class="par">
+    <div class="mal">
+      <div class="rot">Lanzar la excepción</div>
+      <div class="flow" style="margin:.3rem 0 .5rem">throw new Error(
+  "Región 'españa' desconocida"
+);</div>
+      <p>La excepción sube por el servidor, la conversación se corta con un error. El modelo <strong>nunca se entera</strong> de qué pasó ni puede corregirse.</p>
+    </div>
+    <div class="bien">
+      <div class="rot">Devolverlo como resultado</div>
+      <div class="flow" style="margin:.3rem 0 .5rem">return {
+  content: "Error: región 'españa'
+    desconocida. Usá
+    sismo_listar_regiones.",
+  isError: true
+};</div>
+      <p>El modelo <strong>lee ese texto</strong> como el resultado de la tool, llama a <code class="inline">sismo_listar_regiones</code>, y sigue. En la demo lo vimos recuperarse solo.</p>
+    </div>
+  </div>
+  <p class="muted">De ahí que el mensaje de error importe tanto como la descripción de la tool: es texto que un modelo va a leer para decidir su próximo paso. Un <code class="inline">"fetch failed"</code> no le dice nada; <em>"no hay servidor MCP en :8787, corré npm run dev"</em> sí.</p>
+</section>
+
+<!-- ══ 17 ══ -->
+<section class="slide">
+  <div class="clause">15 · Control</div>
+  <h2>Quién juzga y quién bloquea son roles distintos</h2>
+  <p class="lead">El servicio de Code Review de Anthropic revisa un pull request con varios agentes, marca los hallazgos inline… y su check <strong>siempre termina en estado neutral</strong>. Nunca bloquea un merge.</p>
+  <div class="flow">Agentes revisan  →  publican los hallazgos con su severidad
+                        │
+                        ▼
+                   <b>tu CI</b> lee el conteo y decide si frena el merge</div>
+  <p>La documentación es explícita: si querés que los hallazgos bloqueen, tenés que leer el resumen de severidad en tu propio pipeline. Te dan hasta el comando: un <code class="inline">gh api … | jq</code> que devuelve <code class="inline">{"normal": 2, "nit": 1}</code>.</p>
+  <p class="lead">Es el mismo patrón que ya habíamos escrito a mano en el hook de tests: <strong>el agente produce un juicio, una capa determinística decide qué hacer con él.</strong> Ni Anthropic le da a su propio revisor la autoridad de frenar un merge.</p>
+  <p class="fuente">Fuente: <a class="link" href="https://code.claude.com/docs/en/code-review">Code Review — Claude Code docs</a>, sección <em>Check run output</em>.</p>
+</section>
+
+<!-- ══ 18 ══ -->
+<section class="slide">
+  <div class="clause">16 · Método</div>
+  <h2>Cuando sale mal, corregí la entrada</h2>
+  <div class="flow">   escribís la entrada  →  el agente produce  →  mirás el resultado
+          ↑                                              │
+          └──────────  ¿salió mal?  ─────────────────────┘
+              corregí la <b>ENTRADA</b>, no la salida</div>
+  <div class="cols">
+    <div class="card"><h3>Eligió mal la tool</h3><p>La descripción dice qué hace pero no cuándo usarla.</p></div>
+    <div class="card"><h3>Se fue de alcance</h3><p>El spec no tenía lista cerrada de archivos.</p></div>
+    <div class="card"><h3>El diseño salió genérico</h3><p>Le diste adjetivos en vez de un referente y una restricción.</p></div>
+    <div class="card"><h3>Se saltea un paso</h3><p>Falta la línea del system prompt que lo obliga a hacerlo.</p></div>
+  </div>
+  <p class="lead">Parchear la salida a mano resuelve ese caso y deja el problema intacto para el siguiente. Corregir la entrada lo resuelve para siempre — y queda versionado en el repo.</p>
+</section>
+
+<!-- ══ 19 ══ -->
+<section class="slide">
+  <div class="clause">17 · Plantilla</div>
+  <h2>Anatomía de una skill</h2>
+  <div class="flow">---
+name: sismos-queries
+description: Cómo consultar el MCP de sismos — ids de región, escala de
+  magnitud, errores típicos. <i>Usar SIEMPRE que se escriba código que
+  llame una tool mcp__sismos__*.</i>          <b>← el criterio de activación</b>
+---
+
+## Ids de región                    <b>← datos concretos, no teoría</b>
+chile · argentina · japon · california · indonesia …
+El radio de "chile" son 1800km: trae eventos de Bolivia y Perú.
+
+## Magnitud                         <b>← lo que no se puede deducir del código</b>
+&lt; 3.0 no se siente  ·  5.0–5.9 daños menores  ·  ≥ 7.0 terremoto
+Sin magnitudMinima traés ruido: usá 4.0 de piso.
+
+## Errores típicos                  <b>← lo que aprendiste probando</b>
+| Región 'X' desconocida     | id fuera del catálogo        |
+| USGS respondió 400         | rango de fechas inválido     |</div>
+  <p class="muted">El <code class="inline">description</code> se lee en cada request y decide si la skill entra. El cuerpo se lee solo cuando entró — ahí van los detalles.</p>
+</section>
+
+<!-- ══ 20 ══ -->
+<section class="slide">
+  <div class="clause">18 · Plantilla</div>
+  <h2>Anatomía de un agente</h2>
+  <div class="flow">---
+name: code-reviewer
+description: Revisa el diff buscando bugs y problemas de seguridad.
+  <i>Usar ANTES de commitear o de abrir un PR.</i>        <b>← cuándo se dispara</b>
+tools: Read, Grep, Glob, Bash                    <b>← el permiso mínimo</b>
+model: opus                                      <b>← modelo según la tarea</b>
+---
+
+Sos revisor senior. Revisás, NO arreglás.
+
+## Restricción absoluta                          <b>← qué no puede tocar</b>
+El único archivo que escribís es docs/reviews/&lt;fecha&gt;.md
+
+## Formato de salida                             <b>← el artefacto exacto</b>
+Por hallazgo: archivo:línea · qué pasa · <i>cómo falla</i> · sugerencia
+
+## Reglas
+Cada hallazgo necesita "cómo falla" con un input concreto que rompa
+el código. Si no podés escribirlo, no es un hallazgo: borralo.
+Si no hay nada crítico, decilo. No infles el reporte.</div>
+  <p class="muted">Cuatro decisiones por agente: cuándo se dispara, qué herramientas tiene, qué modelo usa, y qué artefacto produce.</p>
+</section>
+
+<!-- ══ 21 ══ -->
+<section class="slide">
+  <div class="clause">19 · Modelos</div>
+  <h2>Un modelo por tarea, no uno para todo</h2>
+  <div class="scroll">
+    <table>
+      <tr><th>Tarea</th><th>Qué requiere</th><th>Perfil de modelo</th><th>Temp.</th></tr>
+      <tr><td>Escribir el spec, decidir arquitectura</td><td>Criterio</td><td>El más capaz disponible</td><td>0.1</td></tr>
+      <tr><td>Implementar un spec ya escrito</td><td>Obediencia</td><td>Rápido y barato</td><td>0</td></tr>
+      <tr><td>Explorar una API, documentar</td><td>Cobertura</td><td>Contexto grande</td><td>0.2</td></tr>
+      <tr><td>Revisar código</td><td>Criterio y escepticismo</td><td>El más capaz disponible</td><td>0.1</td></tr>
+    </table>
+  </div>
+  <p class="lead">En el proyecto de gastos esto se ve en el frontmatter: <code class="inline">architect</code> corre en el modelo caro, <code class="inline">dev</code> en el barato con temperatura 0.</p>
+  <p class="muted">Un modelo abierto de 20B falla cuando le pedís criterio y obediencia al mismo tiempo. Con un spec preciso, la misma tarea le sale bien — porque ya no queda nada que decidir.</p>
+</section>
+
+<!-- ══ 22 ══ -->
+<section class="slide">
+  <div class="clause">20 · Qué no vimos</div>
+  <h2>Los cuatro temas que siguen</h2>
+  <div class="cols">
+    <div class="card">
+      <span class="stamp">1</span>
+      <h3>Paralelismo</h3>
+      <p>Git worktrees: varias sesiones sobre el mismo repo, cada una en su branch, sin pisarse. El límite práctico está en cuántos diffs podés revisar, no en cuántos agentes podés lanzar.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">2</span>
+      <h3>Seguridad del agente</h3>
+      <p>Prompt injection: un README, un issue o una dependencia con instrucciones dirigidas al agente. No se previene en el modelo — se contiene en la ejecución: sandbox, red restringida, variables de entorno limpias.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">3</span>
+      <h3>Agentes sin terminal</h3>
+      <p>Correr un agente en CI o de madrugada, sin nadie mirando. Cambia el diseño: no puede preguntar nada, y todo lo que produzca tiene que ser verificable automáticamente.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">4</span>
+      <h3>Medir el harness</h3>
+      <p>¿Esa skill mejoró algo? Sin medición, cada cambio es fe. El primer paso es contar tokens y tiempo por tarea antes y después — no hace falta una plataforma para eso.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 23 ══ -->
+<section class="slide">
+  <div class="clause">21 · Panorama</div>
+  <h2>Dónde está el campo en 2026</h2>
+  <div class="cols dos">
+    <div class="card">
+      <h3>El mercado se partió en cinco categorías</h3>
+      <ul>
+        <li><strong>IDEs con IA</strong> — Cursor, Windsurf</li>
+        <li><strong>Agentes de terminal</strong> — Claude Code, Codex, Gemini/Antigravity</li>
+        <li><strong>Agentes en la nube</strong> — corren sin tu máquina</li>
+        <li><strong>Agentes nativos de GitHub</strong> — viven en el PR</li>
+        <li><strong>Open source y local</strong> — OpenCode, modelos propios</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Lo nuevo de este año</h3>
+      <ul>
+        <li><strong>ADEs</strong> — entornos hechos para orquestar varios agentes en paralelo, en vez de un editor con IA agregada</li>
+        <li><strong>Un modelo por tarea</strong> — los equipos dejaron de elegir uno solo: caro para planificar, barato para ejecutar en paralelo</li>
+        <li><strong>"Harness engineering"</strong> ya es un término con papers y listas curadas propias</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card">
+    <h3>El dato que ordena la discusión</h3>
+    <p><strong>96,4% de las organizaciones que hacen software usan herramientas de IA para programar</strong> (GitKraken, State of AI in Engineering 2026). Y según el reporte de Anthropic de este año, los equipos que usan agentes reportan una baja moderada del tiempo por tarea y un aumento mucho mayor del volumen de trabajo entregado. La adopción dejó de ser la pregunta; el cuello de botella se corrió a la revisión.</p>
+  </div>
+  <p class="fuente">Fuentes: <a class="link" href="https://northflank.com/blog/agentic-coding-tools">Top agentic coding tools 2026 — Northflank</a> · <a class="link" href="https://www.firecrawl.dev/blog/agentic-ai-trends">Agentic AI trends 2026 — Firecrawl</a></p>
+</section>
+
+<!-- ══ 24 ══ -->
+<section class="slide">
+  <div class="clause">22 · Recursos</div>
+  <h2>Dónde buscar</h2>
+  <div class="cols dos">
+    <div class="card">
+      <h3>Protocolo y estándares</h3>
+      <ul class="small">
+        <li><a class="link" href="https://modelcontextprotocol.io">modelcontextprotocol.io</a> — la especificación de MCP. Es lo único de todo el curso que es un estándar abierto</li>
+        <li><a class="link" href="https://github.com/modelcontextprotocol">github.com/modelcontextprotocol</a> — SDKs en 7 lenguajes y servidores de referencia</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Prompting</h3>
+      <ul class="small">
+        <li><a class="link" href="https://claude.com/blog/best-practices-for-prompt-engineering">Best practices — Anthropic</a></li>
+        <li><a class="link" href="https://platform.claude.com/docs/en/about-claude/models/migration-guide">Migration guide</a> — la sección <em>Prompt-Behavior Changes</em> de cada modelo dice qué técnica dejó de servir y por qué</li>
+        <li>Las skills que ya tenés instaladas. Son prompts largos escritos por gente que los mide: leelas como ejemplo</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Metodología</h3>
+      <ul class="small">
+        <li><a class="link" href="https://martinfowler.com/articles/harness-engineering.html">Harness engineering</a> — Martin Fowler. El marco de controles preventivos vs. correctivos</li>
+        <li><a class="link" href="https://github.com/github/spec-kit">github/spec-kit</a> — spec-driven, 35 integraciones</li>
+        <li><a class="link" href="https://github.com/bmad-code-org/BMAD-METHOD">BMAD-METHOD</a> — equipos de agentes con roles</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Listas curadas</h3>
+      <ul class="small">
+        <li><a class="link" href="https://github.com/ai-boost/awesome-harness-engineering">awesome-harness-engineering</a></li>
+        <li><a class="link" href="https://github.com/awesome-opencode/awesome-opencode">awesome-opencode</a></li>
+        <li>Cada herramienta tiene su <code class="inline">/docs</code>. Verificá contra la fuente: los catálogos y los modelos gratuitos cambian sin aviso</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 25 ══ -->
+<section class="slide">
+  <div class="clause">23 · Por dónde empezar</div>
+  <h2>Cinco pasos sobre un repo real</h2>
+  <div class="cols dos">
+    <div class="card">
+      <span class="stamp">1 · una tarde</span>
+      <h3>Escribí el archivo de instrucciones</h3>
+      <p>Con la herramienta que uses: <code class="inline">CLAUDE.md</code>, <code class="inline">AGENTS.md</code> o el que corresponda. Poné las tres o cuatro cosas que hoy repetís en cada prompt: stack, convenciones, qué no tocar. Empezá corto y agregá cuando te encuentres repitiendo algo.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">2 · una tarde</span>
+      <h3>Extraé una skill de trabajo real</h3>
+      <p>Elegí lo que más repetís. Hacé la tarea a mano una vez, y recién ahí destilá las reglas que seguiste. Una skill inventada de cero sale genérica; una extraída de código que ya funciona, no.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">3 · una hora</span>
+      <h3>Convertí una regla en un hook</h3>
+      <p>Tomá una del archivo de instrucciones que se cumple "casi siempre" y hacela obligatoria. Los tests son el mejor primer caso: un script que verifica y devuelve error si falta algo. Es el paso donde se entiende la diferencia entre pedir y garantizar.</p>
+    </div>
+    <div class="card">
+      <span class="stamp">4 · una tarde</span>
+      <h3>Un agente que no escriba código</h3>
+      <p>Un revisor o un explorador. Dale las herramientas justas para leer y ninguna para escribir en el código. Es donde el permiso mínimo se entiende sin explicación.</p>
+    </div>
+  </div>
+  <div class="card">
+    <span class="stamp">5 · permanente</span>
+    <h3>Commiteá todo eso y revisalo en un PR</h3>
+    <p>Instrucciones, skills, agentes y hooks son código fuente: se versionan, se revisan y viajan con el proyecto. Si están solo en tu máquina, el equipo no los tiene — y vos los perdés cuando cambies de computadora.</p>
+  </div>
+</section>
+
+<!-- ══ 26 ══ -->
+<section class="slide">
+  <div class="clause">24 · Cierre</div>
+  <h2>Qué cambió en el trabajo</h2>
+  <div class="scroll">
+    <table>
+      <tr><th></th><th>Antes</th><th>Ahora</th></tr>
+      <tr><td class="mono">El tiempo se va en</td><td>Escribir el código</td><td>Especificar bien y revisar lo que volvió</td></tr>
+      <tr><td class="mono">El conocimiento del proyecto</td><td>En la cabeza de quien lo escribió</td><td>En archivos versionados que otro puede leer</td></tr>
+      <tr><td class="mono">Las convenciones</td><td>Dependían de la disciplina de cada uno</td><td>Se pueden hacer cumplir con un hook o el CI</td></tr>
+      <tr><td class="mono">Un refactor grande</td><td>Se posponía por costo</td><td>Entra en una tarde, con tests</td></tr>
+      <tr><td class="mono">El cuello de botella</td><td>Producir</td><td>Revisar</td></tr>
+    </table>
+  </div>
+  <p class="lead">Escribir menos código a mano no bajó el listón: lo subió. Si el costo de producir se derrumbó, lo que queda para diferenciar un trabajo de otro es <strong>el criterio</strong> — qué se construye, con qué límites, y cómo se verifica que esté bien.</p>
+  <p class="muted">Y eso es exactamente lo que no se delega. Un agente ejecuta bien lo que está bien especificado; no sabe si valía la pena hacerlo, ni cuál es el costo de equivocarse en tu dominio. Ahí sigue haciendo falta alguien que entienda el problema.</p>
+</section>
+
+<!-- ══ 27 ══ -->
+<section class="slide">
+  <div class="clause">25 · Última</div>
+  <blockquote>La discusión sobre si conviene usarla ya terminó.<br>La que queda es si la vas a usar con harness o sin él.</blockquote>
+  <div class="cols dos">
+    <div class="card">
+      <h3>Sin harness</h3>
+      <p>El agente te acelera y te deja un repo que nadie entiende: código que nadie especificó, convenciones que se cumplen a veces, y una deuda que aparece dos meses después.</p>
+    </div>
+    <div class="card">
+      <h3>Con harness</h3>
+      <p>El mismo agente, la misma velocidad, pero con el contexto escrito, los permisos acotados y las verificaciones corriendo solas. La diferencia no la hace el modelo: la hacen los archivos que pusiste alrededor.</p>
+    </div>
+  </div>
+  <p class="lead">Todo lo que vimos son archivos de texto en el repo. Un MCP es cinco líneas de JSON; un agente, una skill y un hook son markdown y bash. Nada de eso requiere permiso de nadie para empezar.</p>
+  <p class="muted">Lo que aprendieron no es una herramienta puntual — esa va a cambiar. Es cómo se le da forma al trabajo de un sistema que produce mucho más rápido de lo que uno puede revisar.</p>
+</section>
+
+</div>
+
+<div class="bar">
+  <span class="title">Cierre del curso</span>
+  <div class="nav">
+    <button id="prev" aria-label="Slide anterior">←</button>
+    <span class="count" id="count">1 / 27</span>
+    <button id="next" aria-label="Slide siguiente">→</button>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var i = 0;
+    var count = document.getElementById('count');
+    var prog = document.getElementById('prog');
+
+    function show(n) {
+      i = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach(function (s, k) { s.classList.toggle('on', k === i); });
+      count.textContent = (i + 1) + ' / ' + slides.length;
+      prog.style.width = ((i + 1) / slides.length * 100) + '%';
+      window.scrollTo(0, 0);
+    }
+
+    document.getElementById('next').addEventListener('click', function () { show(i + 1); });
+    document.getElementById('prev').addEventListener('click', function () { show(i - 1); });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { show(i + 1); e.preventDefault(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { show(i - 1); e.preventDefault(); }
+      else if (e.key === 'Home') { show(0); }
+      else if (e.key === 'End') { show(slides.length - 1); }
+    });
+
+    show(0);
+  })();
+</script>

@@ -44,6 +44,28 @@ Corto y decisivo, no un tratado:
 5. **Tests** — la lista de casos, uno por línea
 6. **Aceptación** — checklist donde cada punto se verifica con un comando
 
+## Paralelismo: declaralo vos, no lo adivine el dev
+
+Dos historias pueden implementarse a la vez solo si **sus tablas de archivos
+no se cruzan**. Vos sos el único que ve todos los specs juntos, así que sos
+el único que puede decirlo.
+
+En cada spec, agregá al final de la tabla de archivos:
+
+    **Depende de:** ninguna | H-00N
+    **Paralelizable con:** H-00N, H-00M | ninguna
+
+Y en el tablero, completá la columna "Depende de".
+
+**Los archivos que TODAS las historias tocan** (típicamente el que monta los
+routers) son el punto de colisión. Tenés dos salidas:
+1. Que una sola historia temprana los deje listos para todas
+2. Marcarlos en `docs/architecture.md` bajo "Archivos compartidos", con la
+   regla de que se editan de a una historia por vez
+
+Elegí una y escribila en "Decisiones tomadas". Si no lo resolvés vos, dos
+devs en paralelo se pisan.
+
 ## Reglas
 - Preferí specs largos y aburridos a cortos y elegantes
 - Un spec por historia. Si una historia necesita dos specs, la historia

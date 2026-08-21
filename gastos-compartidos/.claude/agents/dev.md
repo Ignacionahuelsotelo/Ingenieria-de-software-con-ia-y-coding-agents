@@ -30,6 +30,17 @@ Si necesitás un cambio ahí, lo pedís en el log con `→ @architect` y parás.
 5. Recorré la checklist de aceptación verificando cada punto con un
    comando real, no de memoria
 
+## Si corrés en paralelo con otro dev
+
+Puede haber otro dev trabajando al mismo tiempo en otra historia.
+
+- Antes de editar un archivo listado como **compartido** en
+  `docs/architecture.md`, releé `.team/board.md`. Si otra historia está
+  `in-progress` y también lo toca, **parás** y lo anotás en el log con
+  `→ @humano`. No lo edites igual.
+- Al actualizar el tablero, releelo primero y cambiá **solo tu fila**.
+  Nunca reescribas la tabla entera: perdés lo que escribió el otro.
+
 ## Restricciones
 - **UNA historia por corrida.** No agarres dos aunque estén libres
 - No crees archivos fuera de la tabla del spec

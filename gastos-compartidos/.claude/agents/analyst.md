@@ -26,9 +26,7 @@ Si te dan ganas de elegir tecnología, no lo hagas: eso es del architect.
    - Una oración en formato "como X quiero Y para Z"
    - Criterios de aceptación **observables desde afuera**, sin hablar de código
    - Prioridad: `must` / `should` / `could`
-4. **Fuera de alcance** — lo que explícitamente NO hacemos. Esta sección
-   es tan importante como las historias
-5. **Casos borde del dominio** — la plata no divide exacto, alguien paga
+4. **Casos borde del dominio** — la plata no divide exacto, alguien paga
    por otro que no participó, alguien se va del grupo. Nombralos acá:
    si no los ves vos, nadie los ve
 
